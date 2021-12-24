@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <EnablePreviewFeatures>true</EnablePreviewFeatures>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Humanizer" Version="2.13.14" />
+      <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
+      <PackageReference Include="Spectre.Console" Version="0.43.0" />
+      <PackageReference Include="System.Interactive.Async" Version="5.1.0" />
+      <PackageReference Include="System.Runtime.Experimental" Version="6.0.0" />
+      <PackageReference Include="WaifuShork.Common" Version="1.1.5" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="resources.xml" />
+      <EmbeddedResource Include="resources.xml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </EmbeddedResource>
+    </ItemGroup>
+
+</Project>
