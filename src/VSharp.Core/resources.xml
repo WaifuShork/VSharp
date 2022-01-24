@@ -1,7 +1,37 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-    <!-- compiler errors -->
-    <key name="MyResource">
-        <value>hello world</value>
+    <!-- static compilation errors -->
+    <key name="Error.DivisionByZero">
+        <value>division by zero</value>
+    </key>
+    <key name="Error.UnterminatedMultiLineComment">
+        <value>unterminated multi-line comment</value>
+    </key>
+    <key name="Error.BadCharacter">
+        <value>bad character input: '{0}'</value>
+    </key>
+    <key name="Error.EmptyCharacterConstant">
+        <value>empty character constant</value>
+    </key>
+    <key name="Error.InvalidCharacterConstant">
+        <value>invalid character constant</value>
+    </key>
+    <key name="Error.UnterminatedStringLiteral">
+        <value>unterminated string literal</value>
+    </key>
+    <key name="Error.UnexpectedCharacter">
+        <value>unexepected character '{0}'</value>
+    </key>
+    <key name="Error.UnexpectedToken">
+        <value>unexepcted token '{0}', expected '{1}'</value>
+    </key>
+    <key name="Error.UnexpectedWithoutExpectedToken">
+        <value>unexepcted token '{0}'</value>
+    </key>
+    <key name="Error.ImplicitlyTypedVariableNoInitializer">
+        <value>implicitly-typed local variable must be initialized</value>
+    </key>
+    <key name="Error.EmptyModifierList">
+        <value>modifier list cannot be empty</value>
     </key>
 </root>

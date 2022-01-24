@@ -1,9 +1,8 @@
-﻿using System.Diagnostics;
-using VSharp.Core.Analysis.Diagnostics;
-using VSharp.Core.Analysis.Syntax;
-using VSharp.Core.Analysis.Text;
+﻿using FluentAssertions;
 
 namespace VSharp.Core.Analysis.Lexing;
+
+using System.Collections.Immutable;
 
 public enum TriviaKind
 {
@@ -13,11 +12,7 @@ public enum TriviaKind
 
 public partial class Lexer
 {
-	// A constant value that would never logically represent a valid token or character 
-	// in the stream of characters from the source text
-    private const char InvalidCharacter = char.MaxValue; // (char) 0xFFFF
-
-    // NOTE: each thread will have their own SyntaxCache for thread-safety purposes,
+	// NOTE: each thread will have their own SyntaxCache for thread-safety purposes,
     // I didn't really like it being a static data holder class that several threads
     // would have access to simultaneously..
     private readonly SyntaxCache m_syntaxCache = new();
@@ -25,14 +20,12 @@ public partial class Lexer
     private readonly SourceText m_source;
     private readonly int m_srcLength;
 
-    private readonly List<SyntaxTrivia> m_triviaBuilder = new();
     private readonly DiagnosticBag m_diagnostics = new();
     
     private int m_start; // start position of the current lexeme 
     private int m_position; // lexer position in the source text 
     private int m_line; // current line of the "file" 
-    private SyntaxKind m_kind; // the type of the token
-    private object? m_value; // value of the token, only applies for things like numbers, strings, and other literals
+    private int m_tokenPosition;
 
     private Lexer(SourceText source)
     {
@@ -42,356 +35,439 @@ public partial class Lexer
         m_start = 0;
         m_position = 0;
         m_line = 1;
-        m_kind = SyntaxKind.BadToken;
-        m_value = null!;
+        m_tokenPosition = 0;
     }
 
     private char Current => Peek(0);
     private char Next => Peek(1);
 
     private bool IsAtEnd => m_position >= m_srcLength;
-    private Lazy<IReadOnlyList<DiagnosticInfo>> Diagnostics => m_diagnostics.Cache;
+    private Lazy<IEnumerable<DiagnosticInfo>> Diagnostics => m_diagnostics.Cache;
 
-    public static IReadOnlyList<SyntaxToken> ScanSyntaxTokens(SourceText source, out IReadOnlyList<DiagnosticInfo> diagnostics)
+    public static IReadOnlyList<ISyntaxToken> ScanSyntaxTokens(SourceText source, out IReadOnlyList<DiagnosticInfo> diagnostics)
     {
 	    var lexer = new Lexer(source);
-	    var counter = 0;
-	    var tokens = new List<SyntaxToken>();
+	    var tokens = new List<ISyntaxToken>();
+
 	    while (true)
-        {
-	        lexer.ScanSyntaxTrivia(TriviaKind.Leading);
+	    {
+		    var token = lexer.ScanSyntaxToken();
+		    if (token.Kind == SyntaxKind.BadToken)
+		    {
+			    continue;
+		    }
 
-	        var tokenStart = lexer.m_position;
-	        var leadingTrivia = lexer.m_triviaBuilder;
-	        var line = lexer.m_line;
-	        
-	        lexer.ScanSyntaxToken();
+		    // We collected a successful token, so increment
+		    lexer.m_tokenPosition++;
+		    tokens.Add(token);
 
-	        var tokenKind = lexer.m_kind;
-	        var tokenValue = lexer.m_value;
-	        var tokenLength = lexer.m_position - lexer.m_start;
-	        
-	        lexer.ScanSyntaxTrivia(TriviaKind.Trailing);
-	        var trailingTrivia = lexer.m_triviaBuilder;
-
-	        // NOTE: First lookup will be delayed due to lazy initialisation
-	        var text = lexer.m_syntaxCache.LookupText(tokenKind);
-	        if (string.IsNullOrWhiteSpace(text))
-	        {
-		        text = lexer.m_source.Substring(tokenStart, tokenLength);
-	        }
-	        
-	        var token = new SyntaxToken(tokenKind, text, tokenValue ?? text, counter, line, leadingTrivia, trailingTrivia);
-	        
-	        // I don't think I even need the EOF token included in the list 
-	        if (token.Kind == SyntaxKind.EndOfFileToken)
-	        {
-		        break;
-	        }
-	        
-	        if (token.Kind == SyntaxKind.WhiteSpaceToken ||
-	            token.Kind == SyntaxKind.BadToken)
-	        {
-		        continue;
-	        }
-
-	        tokens.Add(token);
-	        counter++;
-        }
-
-	    diagnostics = lexer.Diagnostics.Value;
+		    if (token.Kind == SyntaxKind.EndOfFileToken)
+		    {
+			    break;
+		    }
+	    }
+	    
+	    diagnostics = lexer.Diagnostics.Value.ToList();
 	    return tokens;
     }
 
+    private SyntaxToken<T> CreateToken<T>(SyntaxKind kind, string text, T value)
+    {
+	    return new SyntaxToken<T>(Array.Empty<SyntaxTrivia>(), kind, text, value, m_tokenPosition, m_line, Array.Empty<SyntaxTrivia>());
+    }
+
+    private SyntaxToken<T> CreateToken<T>(IReadOnlyList<SyntaxTrivia> leading, SyntaxKind kind, string text, T value, IReadOnlyList<SyntaxTrivia> trailing)
+    {
+	    return new SyntaxToken<T>(leading, kind, text, value, m_tokenPosition, m_line, trailing);
+    }
+
+    private SyntaxToken<string> CreateToken(IReadOnlyList<SyntaxTrivia> leading, SyntaxKind kind, string text, IReadOnlyList<SyntaxTrivia> trailing)
+    {
+	    return CreateToken(leading, kind, text, text, trailing);
+    }
+    
     // TODO: return syntax token here
-    private void ScanSyntaxToken()
+    private ISyntaxToken ScanSyntaxToken()
     {
 	    // Reset the lexer read information for the new token
         m_start = m_position;
-        m_value = null;
-        m_kind = SyntaxKind.BadToken; // always assume the worst
-
-        // Scan leading trivia, and trailing after entering a token
         
-        var token = default(SyntaxToken);
+        var leadingTrivia = ScanSyntaxTrivia(TriviaKind.Leading);
+        var token = default(ISyntaxToken);
+        
         switch (Current)
         {
-            case InvalidCharacter:
-                m_kind = SyntaxKind.EndOfFileToken;
-                token = new SyntaxToken(m_kind, "EOF", "EOF", 0, m_line, ArraySegment<SyntaxTrivia>.Empty, ArraySegment<SyntaxTrivia>.Empty);
-                break;
+	        case CharacterInfo.InvalidCharacter:
+	        {
+		        return SyntaxToken<string>.EndOfFile(m_tokenPosition, m_line, leadingTrivia);
+	        }
             case '.':
-				m_kind = SyntaxKind.DotToken;
-				Advance();
-				break;
-			case ',':
-				m_kind = SyntaxKind.CommaToken;
-				Advance();
-				break;
+            {
+	            Advance();
+	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+	            return CreateToken(leadingTrivia, SyntaxKind.DotToken, ".", trailingTrivia);
+            }
+            case ',':
+            {
+	            Advance();
+	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+	            return CreateToken(leadingTrivia, SyntaxKind.CommaToken, ",", trailingTrivia);
+            }
 			case '(':
-				m_kind = SyntaxKind.OpenParenToken;
-				Advance();
-				break;
+            {
+	            Advance();
+	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+	            return CreateToken(leadingTrivia, SyntaxKind.OpenParenToken, "(", trailingTrivia);
+            }
 			case ')':
-				m_kind = SyntaxKind.CloseParenToken;
-				Advance();
-				break;
+            {
+	            Advance();
+	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+	            return CreateToken(leadingTrivia, SyntaxKind.CloseParenToken, ")", trailingTrivia);
+            }
 			case '{':
-				m_kind = SyntaxKind.OpenBraceToken;
-				Advance();
-				break;
+            {
+	            Advance();
+	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+	            return CreateToken(leadingTrivia, SyntaxKind.OpenBraceToken, "{", trailingTrivia);
+            }
 			case '}':
-				m_kind = SyntaxKind.CloseBraceToken;
-				Advance();
-				break;
+            {
+	            Advance();
+	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+	            return CreateToken(leadingTrivia, SyntaxKind.CloseBraceToken, "}", trailingTrivia);
+            }
 			case '[':
-				m_kind = SyntaxKind.OpenBracketToken;
-				Advance();
-				break;
+            {
+	            Advance();
+	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+	            return CreateToken(leadingTrivia, SyntaxKind.OpenBracketToken, "[", trailingTrivia);
+            }
 			case ']':
-				m_kind = SyntaxKind.CloseBracketToken;
-				Advance();
-				break;
+            {
+	            Advance();
+	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+	            return CreateToken(leadingTrivia, SyntaxKind.CloseBracketToken, "]", trailingTrivia);
+            }
 			case ':':
-				m_kind = SyntaxKind.ColonToken;
-				Advance();
-				break;
+            {
+	            Advance();
+	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+	            return CreateToken(leadingTrivia, SyntaxKind.ColonToken, ":", trailingTrivia);
+            }
 			case ';':
-				m_kind = SyntaxKind.SemicolonToken;
-				Advance();
-				break;
+            {
+	            Advance();
+	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+	            return CreateToken(leadingTrivia, SyntaxKind.SemicolonToken, ";", trailingTrivia);
+            }
 			case '?':
-				m_kind = SyntaxKind.QuestionMarkToken;
-				Advance();
-				break;
+            {
+	            Advance();
+	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+	            return CreateToken(leadingTrivia, SyntaxKind.QuestionMarkToken, "?", trailingTrivia);
+            }
+	        case '@':
+	        {
+		        Advance();
+		        var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+		        return CreateToken(leadingTrivia, SyntaxKind.AtToken, "@", trailingTrivia);
+	        }
 			case '^':
 				Advance();
 				switch (Current)
 				{
 					case '=':
-						m_kind = SyntaxKind.CaretEqualsToken;
+					{
 						Advance();
-						break;
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.CaretEqualsToken, "^=", trailingTrivia);
+					}
+
 					default:
-						m_kind = SyntaxKind.CaretToken;
-						break;
+					{
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.CaretToken, "^", trailingTrivia);
+					}
 				}
-				break;
 			case '~':
 				Advance();
 				switch (Current)
 				{
 					case '=':
-						m_kind = SyntaxKind.TildeEqualsToken;
+					{
 						Advance();
-						break;
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.TildeEqualsToken, "~=", trailingTrivia);
+					}
 					default:
-						m_kind = SyntaxKind.TildeToken;
-						break;
+					{
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.TildeEqualsToken, "~", trailingTrivia);
+					}
 				}
-				break;
 			case '+':
 				Advance();
 				switch (Current)
 				{
 					case '+':
-						m_kind = SyntaxKind.PlusPlusToken;
+					{
 						Advance();
-						break;
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.PlusPlusToken, "++", trailingTrivia);
+					}
 					case '=':
-						m_kind = SyntaxKind.PlusEqualsToken;
+					{
 						Advance();
-						break;
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.PlusEqualsToken, "+=", trailingTrivia);
+					}
 					default:
-						m_kind = SyntaxKind.PlusToken;
-						break;
+					{
+						Advance();
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.PlusToken, "+", trailingTrivia);
+					}
 				}
-				break;
 			case '-':
 				Advance();
 				switch (Current)
 				{
-				case '-':
-					m_kind = SyntaxKind.MinusMinusToken;
-					Advance();
-					break;
-				case '=':
-					m_kind = SyntaxKind.MinusEqualsToken;
-					Advance();
-					break;
-				default:
-					m_kind = SyntaxKind.MinusToken;
-					break;
+					case '-':
+					{
+						Advance();
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.MinusMinusToken, "--", trailingTrivia);
+					}
+					case '=':
+					{
+						Advance();
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.MinusEqualsToken, "-=", trailingTrivia);
+					}
+					case '>':
+					{
+						Advance();
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.ArrowToken, "->", trailingTrivia);
+					}
+					default:            
+					{
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.MinusToken, "-", trailingTrivia);
+					}
 				}
-				break;
 			case '/':
 				Advance();
 				switch (Current)
 				{
 					case '=':
-						m_kind = SyntaxKind.FSlashEqualsToken;
+					{
 						Advance();
-						break;
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.FSlashEqualsToken, "/=", trailingTrivia);
+					}
 					default:
-						m_kind = SyntaxKind.FSlashToken;
-						break;
+					{
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.FSlashToken, "/", trailingTrivia);
+					}
 				}
-				break;
 			case '*':
 				Advance();
 				switch (Current)
 				{
 					case '=':
-						m_kind = SyntaxKind.AsteriskEqualsToken;
+					{
 						Advance();
-						break;
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.AsteriskEqualsToken, "*=", trailingTrivia);
+					}
 					default:
-						m_kind = SyntaxKind.AsteriskToken;
-						break;
+					{
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.AsteriskToken, "*", trailingTrivia);
+					}
 				}
-				break;
 			case '%':
 				Advance();
 				switch (Current)
 				{
 					case '=':
-						m_kind = SyntaxKind.PercentEqualsToken;
+					{
 						Advance();
-						break;
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.PercentEqualsToken, "%=", trailingTrivia);
+					}
 					default:
-						m_kind = SyntaxKind.PercentToken;
-						break;
+					{
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.PercentToken, "%", trailingTrivia);
+					}
 				}
-				break;
 			case '=':
 				Advance();
 				switch (Current)
 				{
 					case '=':
-						m_kind = SyntaxKind.EqualsEqualsToken;
+					{
 						Advance();
-						break;
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.EqualsEqualsToken, "==", trailingTrivia);
+					}
 					default:
-						m_kind = SyntaxKind.EqualsToken;
-						break;
+					{
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.EqualsToken, "=", trailingTrivia);
+					}
 				}
-				break;
 			case '>':
 				Advance();
 				switch (Current)
 				{
 					case '=':
-						m_kind = SyntaxKind.GreaterEqualsToken;
+					{
 						Advance();
-						break;
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.GreaterEqualsToken, ">=", trailingTrivia);
+					}
 					case '>':
 						Advance();
 						if (Current == '=')
 						{
-							m_kind = SyntaxKind.GreaterGreaterEqualsToken;
 							Advance();
+							var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+							return CreateToken(leadingTrivia, SyntaxKind.GreaterGreaterEqualsToken, ">>=", trailingTrivia);
 						}
 						else
 						{
-							m_kind = SyntaxKind.GreaterGreaterToken;
-						}
-						break;
+							var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+							return CreateToken(leadingTrivia, SyntaxKind.GreaterGreaterToken, ">>", trailingTrivia);
+						}	
 					default:
-						m_kind = SyntaxKind.GreaterToken;
-						break;
+					{
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.GreaterToken, ">", trailingTrivia);
+					}
 				}
-				break;
 			case '<':
 				Advance();
 				switch (Current)
 				{
 					case '=':
-						m_kind = SyntaxKind.LessEqualsToken;
+					{
 						Advance();
-						break;
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.LessEqualsToken, "<=", trailingTrivia);
+					}
 					case '<':
 						Advance();
 						if (Current == '=')
 						{
-							m_kind = SyntaxKind.LessLessEqualsToken;
 							Advance();
+							var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+							return CreateToken(leadingTrivia, SyntaxKind.LessLessEqualsToken, "<<=", trailingTrivia);
 						}
 						else
 						{
-							m_kind = SyntaxKind.LessLessToken;
-						}
-						break;
+							var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+							return CreateToken(leadingTrivia, SyntaxKind.LessLessToken, "<<", trailingTrivia);
+						}	
 					default:
-						m_kind = SyntaxKind.LessToken;
-						break;
+					{
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.LessToken, "<", trailingTrivia);
+					}
 				}
-				break;
 			case '!':
 				Advance();
 				switch (Current)
 				{
 					case '=':
-						m_kind = SyntaxKind.BangEqualsToken;
+					{
 						Advance();
-						break;
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.BangEqualsToken, "!=", trailingTrivia);
+					}
 					default:
-						m_kind = SyntaxKind.BangToken;
-						break;
+					{
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.BangToken, "!", trailingTrivia);
+					}
 				}
-				break;
 			case '|':
 				Advance();
 				switch (Current)
 				{
 					case '=':
-						m_kind = SyntaxKind.PipeEqualsToken;
+					{
 						Advance();
-						break;
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.PipeEqualsToken, "!=", trailingTrivia);
+					}
 					case '|':
-						m_kind = SyntaxKind.PipePipeToken;
+					{
 						Advance();
-						break;
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.PipePipeToken, "||", trailingTrivia);
+					}
 					default:
-						m_kind = SyntaxKind.PipeToken;
-						break;
+					{
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.PipeToken, "|", trailingTrivia);
+					}
 				}
-				break;
 			case '&':
 				Advance();
 				switch (Current)
 				{
 					case '=':
-						m_kind = SyntaxKind.AmpersandEqualsToken;
+					{
 						Advance();
-						break;
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.AmpersandEqualsToken, "&=", trailingTrivia);
+					}	
 					case '&':
-						m_kind = SyntaxKind.AmpersandAmpersandToken;
+					{
 						Advance();
-						break;
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.AmpersandAmpersandToken, "&&", trailingTrivia);
+					}
 					default:
-						m_kind = SyntaxKind.AmpersandToken;
-						break;
+					{
+						Advance();
+						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
+						return CreateToken(leadingTrivia, SyntaxKind.AmpersandToken, "&", trailingTrivia);
+					}
 				}
-				break;
-            case '"':
-			case '\'':
-				ScanStringOrCharLiteral();
-				break;
-            case var letter when letter.IsIdentifierStartCharacter():// char.IsLetter(letter) || letter == '_':
-	            ScanIdentifierOrKeyword();
-	            break;
-            case var digit when digit.IsQualifiedDigit(): // char.IsDigit(digit):
-                ScanNumericLiteral();
-	            break;
-            default:
-	            var span = new TextSpan(m_position, 1);
-	            var location = new TextLocation(m_source, span);
-	            m_diagnostics.ReportUnexpectedToken(location, Current);
-	            Advance();
-	            break;
+	        case '"':
+	        {
+		        return ScanStringLiteral('"', leadingTrivia);
+	        }
+	        case '\'':
+	        {
+		        return ScanCharLiteral('\'', leadingTrivia);
+	        }
+	        case var letter when letter.IsIdentifierStartCharacter():
+	        {
+		        return ScanIdentifierOrKeyword(leadingTrivia);
+	        }
+	        case var digit when digit.IsQualifiedDigit():
+	        {
+		        return ScanNumericLiteral(leadingTrivia);
+	        }
+	        default:
+	        {
+		        var span = new TextSpan(m_position, 1);
+		        var location = new TextLocation(m_source, span);
+		        m_diagnostics.ReportUnexpectedCharacter(location, Current, out _);
+		        Advance();
+		        break;
+	        }
         }
-        
-        Console.WriteLine(token);
+
+        // Unlikely to be null, but still
+        return token ?? CreateToken(leadingTrivia, SyntaxKind.BadToken, "ERROR", ImmutableArray<SyntaxTrivia>.Empty);
     }
 
     private string GetFullSpan()
@@ -399,42 +475,69 @@ public partial class Lexer
 	    unchecked
 	    {
 		    var length = m_position - m_start;
-		    
-		    Debug.Assert(m_start >= 0 && length >= 0, "unable to assert (m_start >= 0 && length >= 0)");
-		    Debug.Assert(m_start <= int.MaxValue && length <= int.MaxValue, "unable to assert (m_start <= int.MaxValue && length <= int.MaxValue)");
 
+		    length.Should().BePositive("length must be greater than zero to obtain full span");
+		    (m_start < 0 && length < 0).Should().BeFalse("start and length cannot be negative");
+		    (m_start < int.MaxValue && length < int.MaxValue).Should().BeTrue("start and length cannot be greater than int.MaxValue");
+		    
 		    return m_source.Substring(m_start, length);
 	    }
     }
 
-    private void ScanIdentifierOrKeyword()
+    private ISyntaxToken ScanIdentifierToken(IReadOnlyList<SyntaxTrivia> leading, int32 numberLength)
     {
+	    // language spec denotes that numeric prefixed identifiers can only have a number less than 10 in length,
+	    // the value of the number is inconsequential due to the fact it will become a string 
+	    numberLength.Should().BeLessOrEqualTo(10);
+	    while (Current.IsIdentifierPartCharacter())
+	    {
+		    Advance();
+	    }
+
+	    // insert an underscore for CLR compatibility
+	    var text = "_" + GetFullSpan();
+	    var trailing = ScanSyntaxTrivia(TriviaKind.Trailing);
+	    return CreateToken(leading, SyntaxKind.IdentifierToken, text, text, trailing);
+    }
+    
+    private ISyntaxToken ScanIdentifierOrKeyword(IReadOnlyList<SyntaxTrivia> leading)
+    {
+	    m_start = m_position;
 	    while ((char.IsLetterOrDigit(Current) || Current == '_') && !IsAtEnd)
 	    {
 		    Advance();
 	    }
 
 	    var text = GetFullSpan();
-	    m_value = text;
-	    m_kind = m_syntaxCache.LookupKeyword(text);
+	    var kind = m_syntaxCache.LookupKeyword(text);
+	    var trailing = ScanSyntaxTrivia(TriviaKind.Trailing);
+	    if (kind != SyntaxKind.TrueKeyword && kind != SyntaxKind.FalseKeyword)
+	    {
+		    return CreateToken(leading, kind, text, text, trailing);
+	    }
+
+	    return text == "true"
+		    ? CreateToken(leading, kind, text, true, trailing)
+		    : CreateToken(leading, kind, text, false, trailing);
     }
 
-    private char Peek(ulong offset = 0)
+    private char Peek(int offset = 0)
     {
-	    // ulong to force forward peeking only
+	    offset.Should().BeGreaterOrEqualTo(0, "cannot peek backwards");
+	    
 	    checked // if we overflow, we have a big problem
 	    {
-		    var index = m_position + (int) offset;
+		    var index = m_position + offset;
 		    if (index >= m_srcLength)
 		    {
-			    return InvalidCharacter;
+			    return CharacterInfo.InvalidCharacter;
 		    }
 
 		    return m_source[index];
 	    }
     }
     
-    private void Advance(ulong amount = 1)
+    private void Advance(int amount = 1)
     {
 	    if (m_position >= m_srcLength)
 	    {
@@ -444,7 +547,8 @@ public partial class Lexer
 	    checked // we need to know if this overflows because then there's a big issue
 	    {
 		    // ulong because it doesn't make much sense to advance...backwards? 
-		    m_position += (int) amount;
+		    m_position += amount;
+		    m_position.Should().BeLessThanOrEqualTo(m_srcLength, "cannot advance past the full source length");
 	    }
     }
 }

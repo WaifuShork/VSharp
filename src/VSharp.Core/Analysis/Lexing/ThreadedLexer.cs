@@ -1,10 +1,9 @@
-﻿using System.Collections.Concurrent;
-using VSharp.Core.Analysis.Text;
-using VSharp.Core.Analysis.Syntax;
-using VSharp.Core.Analysis.Diagnostics;
-using VSharp.Core.Extensions;
+﻿namespace VSharp.Core.Analysis.Lexing;
 
-namespace VSharp.Core.Analysis.Lexing;
+using Spectre.Console;
+using System.Globalization;
+using System.Collections.Concurrent;
+using WaifuShork.Common.Extensions;
 
 /// <summary>
 /// A multi-threaded Lexer pool of threads, taking in all source files, lexing them in parallel,
@@ -20,6 +19,7 @@ namespace VSharp.Core.Analysis.Lexing;
 ///	   there's no need to use this interface if you plan on lexing a handful of files (however that's currently-
 ///	   the default for this program), it really shines when you have several files.	
 /// </summary>
+[PublicAPI]
 public sealed class ThreadedLexer
 {
 	private readonly ConcurrentDictionary<int, LexerThread> m_lexers;
@@ -47,10 +47,10 @@ public sealed class ThreadedLexer
 				Tokens = new(),
 				Diagnostics = new(),
 			};
-			
 			// NOTE: AddOrUpdate is called over TryAdd so I can get the newly added value to invoke the new thread start
 			var thread = m_lexers.AddOrUpdate(i, lexerThread, (_, _) => lexerThread);
 			thread.Worker?.Start(m_lexers[i]);
+			Console.WriteLine(thread.Worker?.ThreadState);
 			thread.Worker?.Join();
 		});
 	}
@@ -69,11 +69,11 @@ public sealed class ThreadedLexer
 		}
 	}
 	
-	public IReadOnlyList<SyntaxToken> GetAllTokens()
+	public IReadOnlyList<ISyntaxToken> GetAllTokens(bool preserveEof = true)
 	{
 		var tokenCount = m_lexers.Values.Sum(t => t.Tokens?.Count);
-		var tokens = new List<SyntaxToken>(tokenCount ?? 20);
-		
+		var tokens = new List<ISyntaxToken>(tokenCount ?? 20);
+
 		// it always starts from 0, so need to use LINQs OrderBy method, 
 		// this also needs to be done synchronously, so tokens aren't added
 		// out of order, which would cause unintended syntax errors
@@ -87,13 +87,19 @@ public sealed class ThreadedLexer
 			{
 				continue;
 			}
-			
+
 			// The order each files tokens are added is irrelevant, 
 			// as long as all of them are declared and relevant
-			tokens.AddRange(tempTokens);
+			tokens.AddRange(preserveEof ? tempTokens : tempTokens.Where(t => t.Kind != SyntaxKind.EndOfFileToken));
 		}
 
 		return tokens;
+	}
+
+	public IReadOnlyList<DiagnosticInfo> GetStaticDiagnostics()
+	{
+		return GetAllDiagnostics().Where(d => d.IsStatic) 
+			as IReadOnlyList<DiagnosticInfo> ?? new List<DiagnosticInfo>();
 	}
 
 	public IReadOnlyList<DiagnosticInfo> GetAllDiagnostics()
@@ -121,22 +127,42 @@ public sealed class ThreadedLexer
 			return;
 		}
 
-		if (thread.Text is null || thread.Text.IsNullOrWhiteSpace())
+		if (thread.Text is null || thread.Text.ToString(CultureInfo.CurrentCulture).IsNullOrWhiteSpace())
 		{
 			return;
 		}
 
-		var tokens = Lexer.ScanSyntaxTokens(thread.Text, out var diagnostics);
-		thread.Tokens?.AddRange(tokens);
-		thread.Diagnostics?.AddRange(diagnostics);
+		try
+		{
+			var tokens = Lexer.ScanSyntaxTokens(thread.Text, out var diagnostics);
+			thread.Tokens?.AddRange(tokens);
+			thread.Diagnostics?.AddRange(diagnostics);
+			
+		}
+		catch (Exception exception)
+		{
+			AnsiConsole.WriteException(exception);
+		}
 	}
 	
+	public void Wait()
+	{
+		while (true)
+		{
+			if (IsCompleted)
+			{
+				break;
+			}
+		}
+	}
+	
+	[PublicAPI]
 	public readonly struct LexerThread
 	{
 		public ulong Id { get; init; }
 		public SourceText? Text { get; init; }
 		public Thread? Worker { get; init; }
-		public List<SyntaxToken>? Tokens { get; init; }
+		public List<ISyntaxToken>? Tokens { get; init; }
 		public List<DiagnosticInfo>? Diagnostics { get; init; } 
 	}
 }

@@ -1,10 +1,29 @@
-<div align="center">
-<p align="center">
-    <img width="150" src="media\logo.png" alt="V# Logo" /><br>
-</p>
-
-# The V# Compiler
-V# is an open source, object-oriented, type-safe, and elegant programming language. My design goal is to create a language that encapsulates simplicity, speed, and safety.
-The syntax is derived from a combination of C#, Golang, and more C-style languages. 
-
+<!DOCTYPE html>
+<html lang="en">
+<div style="text-align:center">
+    <p>
+        <img src="media/logo.png" alt="V# Logo" width="166" height="204.8" /><br>
+    </p>
+    <h1>The V# Compiler</h1> 
+        <p>
+            V# is an open source, object-oriented, type-safe, and elegant programming language. My design goal is to create a language that encapsulates simplicity, speed, and safety.
+            The syntax is derived from a combination of C#, Golang, and more C-style languages.
+        </p>
+    <h1>But Why?</h1>
+        <p>
+            All languages are great in their own respect, but the biggest part of a language for me doesn't come from actual
+            language features, it's the Standard Library and Runtime/VM that the language uses. The reason I've decided to name
+            this language V# is because I want to integrate it into the .NET family, not necessarily directly, but at least running
+            on the .NET Runtime with seamless cross-platform support, and a vast Standard Library that's tried and true with industry
+            standard code. All implemented in an extremely simplistic, lightweight, and easy to learn or use language.
+        </p>
+        <p>
+            I want to take the word Multi-Paradigm to a new level, and create a language that fully expresses true Multi-Paradigm-ness.
+            While most general purpose languages claim to support multiple paradigms, they often fall short by the fact that they're "XYZ First".
+            Consider C#, a great general purpose language, that technically does support multiple paradigms, but it still stems from an OOP perspective.
+            The closest language I can consider to be truly multi-paradigm in a meaningful way that doesn't compromise readability, is Golang --
+            Go offers incredibly simplistic syntax, almost JavaScript like (but stripped), and makes the most of it by using simplicity to it's avantage. 
+        </p>
 </div>
+</html>
+

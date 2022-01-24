@@ -1,18 +1,16 @@
-﻿using System.Collections;
-using System.Globalization;
-using JetBrains.Annotations;
+﻿namespace VSharp.Core.Analysis.Text;
 
-namespace VSharp.Core.Analysis.Text;
+using Spectre.Console;
+using System.Collections;
 
+[PublicAPI]
 public sealed class SourceText : IComparable, ICloneable, IConvertible, IComparable<SourceText>, IEnumerable<char>, IEquatable<SourceText>
 {
-    // private readonly string m_text;
-    private readonly string m_text;
-
     private SourceText(string text, string fileName = "null")
     {
-        m_text = text;
+        Text = text;
         Length = text.Length;
+        Position = 0;
         FileName = fileName;
         Lines = ParseLines(this, text);
     }
@@ -20,21 +18,101 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
     public static readonly SourceText Empty = new(""); 
     
     public int Length { get; }
-    public string FileName { get;  }
+    public string FileName { get; }
+    public string Text { get; }
 
     public IReadOnlyList<TextLine> Lines { get; }
+    
+    public int Position { get; private set; }
     
     public char this[int index]
     {
         get
         {
-            if (index > Length)
+            if (!index.IsWithinBounds(this))
             {
+                Console.WriteLine($"Index: {index}, Source: {Text}");
                 throw new IndexOutOfRangeException(nameof(index));
             }
-
-            return m_text[index];
+            
+            return At(index);
         }
+    }
+
+    public SourceText this[Range range]
+    {
+        get
+        {
+            if (!range.IsWithinBounds(this))
+            {
+                throw new IndexOutOfRangeException(nameof(range));
+            }
+
+            return From(From(range));
+        }
+    }
+
+    public char At(int index)
+    {
+        return Text.At(index);
+    }
+
+    public string From(Range range)
+    {
+        return Text.From(range);
+    }
+
+    public void Increment(int amount = 1)
+    {
+        var index = Position + amount;
+        if (index.IsWithinBounds(Text))
+        {
+            Position = index;
+        }
+    }
+
+    public static bool operator ==(SourceText left, SourceText right)
+    {
+        return left.Equals(right);
+    }
+    
+    public static bool operator !=(SourceText left, SourceText right)
+    {
+        return !(left == right);
+    }
+    
+    public static SourceText operator ++(SourceText text)
+    {
+        text.Increment();
+        return text;
+    }
+
+    public static SourceText operator --(SourceText text)
+    {
+        text.Decrement();
+        return text;
+    }
+    
+    public void Decrement(int amount = 1)
+    {
+        var index = Position - amount;
+        if (index.IsWithinBounds(Text))
+        {
+            Position = amount;
+        }
+    }
+    
+    public SourceText[] Chunk()
+    {
+        var inserter = Lines.Count / 4;
+        var lines = Lines.ToList();
+        return new[]
+        {
+            From(lines.Slice(..inserter).ToString(SeparatorKind.NewLine)),
+            From(lines.Slice((inserter + 1)..(inserter * 2)).ToString(SeparatorKind.NewLine)),
+            From(lines.Slice((inserter * 2 + 1)..(inserter * 3)).ToString(SeparatorKind.NewLine)),
+            From(lines.Slice((inserter * 3 + 1)..(inserter * 4)).ToString(SeparatorKind.NewLine)),
+        };
     }
     
     private static IReadOnlyList<TextLine> ParseLines(in SourceText sourceText, string text)
@@ -121,14 +199,24 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
         return lower - 1;
     }
     
-    public static SourceText From(string text, string fileName = "null")
+    public static SourceText From(string text, string fileName = "src/script.vs")
     {
         return new SourceText(text, fileName);
+    }
+
+    public string Substring(TextSpan span)
+    {
+        if (span.Length <= 0)
+        {
+            return "";
+        }
+
+        return Substring(span.Start, span.Length);
     }
     
     public string Substring(int startIndex, int length)
     {
-        return m_text.Substring(startIndex, length);
+        return Text.Substring(startIndex, length);
     }
 
     public string ToString(TextSpan span)
@@ -136,10 +224,9 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
         return Substring(span.Start, span.Length);
     }
     
-    // Overrides
     public override string ToString()
     {
-        return m_text;
+        return Text;
     }
     
     public int CompareTo(object? obj)
@@ -154,12 +241,12 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
             throw new ArgumentException("invalid type");
         }
 
-        return string.Compare(m_text, obj as string, StringComparison.CurrentCulture);
+        return string.Compare(Text, obj as string, StringComparison.CurrentCulture);
     }
 
     public object Clone()
     {
-        return new SourceText(new string(m_text), FileName);
+        return new SourceText(new string(Text), FileName);
     }
 
     public TypeCode GetTypeCode()
@@ -169,87 +256,199 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
 
     public bool ToBoolean(IFormatProvider? provider)
     {
-        return Convert.ToBoolean(m_text, provider);
-    }
+        try
+        {
+            return Convert.ToBoolean(Text, provider);
+        }
+        catch (Exception exception)
+        {
+            AnsiConsole.WriteException(exception);
+            return false;
+        }    }
 
     public byte ToByte(IFormatProvider? provider)
     {
-        return Convert.ToByte(m_text, provider);
-    }
+        try
+        {
+            return Convert.ToByte(Text, provider);
+        }
+        catch (Exception exception)
+        {
+            AnsiConsole.WriteException(exception);
+            return 0;
+        }    }
 
     public char ToChar(IFormatProvider? provider)
     {
-        return Convert.ToChar(m_text, provider);
+        try
+        {
+            return Convert.ToChar(Text, provider);
+        }
+        catch (Exception exception)
+        {
+            AnsiConsole.WriteException(exception);
+            return CharacterInfo.InvalidCharacter;
+        }    
     }
 
     public DateTime ToDateTime(IFormatProvider? provider)
     {
-        return Convert.ToDateTime(m_text, provider);
-    }
+        try
+        {
+            return Convert.ToDateTime(Text, provider);
+        }
+        catch (Exception exception)
+        {
+            AnsiConsole.WriteException(exception);
+            return DateTime.Now;
+        }    }
 
     public decimal ToDecimal(IFormatProvider? provider)
     {
-        return Convert.ToDecimal(m_text, provider);
-    }
+        try
+        {
+            return Convert.ToDecimal(Text, provider);
+        }
+        catch (Exception exception)
+        {
+            AnsiConsole.WriteException(exception);
+            return 0;
+        }    }
 
     public double ToDouble(IFormatProvider? provider)
     {
-        return Convert.ToDouble(m_text, provider);
-    }
+        try
+        {
+            return Convert.ToDouble(Text, provider);
+        }
+        catch (Exception exception)
+        {
+            AnsiConsole.WriteException(exception);
+            return 0;
+        }    }
 
     public short ToInt16(IFormatProvider? provider)
     {
-        return Convert.ToInt16(m_text, provider);
-    }
+        try
+        {
+            return Convert.ToInt16(Text, provider);
+        }
+        catch (Exception exception)
+        {
+            AnsiConsole.WriteException(exception);
+            return 0;
+        }    }
 
     public int ToInt32(IFormatProvider? provider)
     {
-        return Convert.ToInt32(m_text, provider);
-    }
+        try
+        {
+            return Convert.ToInt32(Text, provider);
+        }
+        catch (Exception exception)
+        {
+            AnsiConsole.WriteException(exception);
+            return 0;
+        }    }
 
     public long ToInt64(IFormatProvider? provider)
     {
-        return Convert.ToInt64(m_text, provider);
-    }
+        try
+        {
+            return Convert.ToInt64(Text, provider);
+        }
+        catch (Exception exception)
+        {
+            AnsiConsole.WriteException(exception);
+            return 0;
+        }    }
 
     public sbyte ToSByte(IFormatProvider? provider)
     {
-        return Convert.ToSByte(m_text, provider);
+        try
+        {
+            return Convert.ToSByte(Text, provider);
+        }
+        catch (Exception exception)
+        {
+            AnsiConsole.WriteException(exception);
+            return 0;
+        }
     }
 
     public float ToSingle(IFormatProvider? provider)
     {
-        return Convert.ToSingle(m_text, provider);
+        try
+        {
+            return Convert.ToSingle(Text, provider);
+        }
+        catch (Exception exception)
+        {
+            AnsiConsole.WriteException(exception);
+            return 0;
+        }
     }
 
     public string ToString(IFormatProvider? provider)
     {
-        return m_text;
+        return Text;
     }
 
     public object ToType(Type conversionType, IFormatProvider? provider)
     {
-        return Convert.ChangeType(m_text, conversionType, provider);
+        try
+        {
+            return Convert.ChangeType(Text, conversionType, provider);
+        }
+        catch (Exception exception)
+        {
+            AnsiConsole.WriteException(exception);
+            return Text;
+        }
     }
 
     public ushort ToUInt16(IFormatProvider? provider)
     {
-        return Convert.ToUInt16(m_text, provider);
+        try
+        {
+            return Convert.ToUInt16(Text, provider);
+        }
+        catch (Exception exception)
+        {
+            AnsiConsole.WriteException(exception);
+            return 0;
+        }
     }
 
     public uint ToUInt32(IFormatProvider? provider)
     {
-        return Convert.ToUInt32(m_text, provider);
+        try
+        {
+            return Convert.ToUInt32(Text, provider);
+        }
+        catch (Exception exception)
+        {
+            AnsiConsole.WriteException(exception);
+            return 0;
+        }
     }
 
     public ulong ToUInt64(IFormatProvider? provider)
     {
-        return Convert.ToUInt64(m_text, provider);
+        try
+        {
+            return Convert.ToUInt64(Text, provider);
+        }
+        catch (Exception exception)
+        {
+            AnsiConsole.WriteException(exception);
+            return 0;
+        }
     }
 
     public IEnumerator<char> GetEnumerator()
     {
-        return m_text.GetEnumerator();
+        return Text.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -259,12 +458,12 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
 
     public int CompareTo(SourceText? other)
     {
-        return string.CompareOrdinal(m_text, other?.m_text);
+        return string.CompareOrdinal(Text, other?.Text);
     }
 
     public bool Equals(SourceText? other)
     {
-        return m_text == other?.m_text &&
+        return Text == other?.Text &&
                Length == other.Length &&
                FileName == other.FileName &&
                Lines.Equals(other.Lines);
@@ -277,12 +476,12 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
             return false;
         }
 
-        return (source.m_text, source.Length, source.FileName, source.Lines)
-            .Equals((source.m_text, source.Length, source.FileName, source.Lines));
+        return (source.Text, source.Length, source.FileName, source.Lines)
+            .Equals((source.Text, source.Length, source.FileName, source.Lines));
     }
 
     public override int GetHashCode()
     {
-        return (m_text, Length, FileName, Lines).GetHashCode();
+        return (Text, Length, FileName, Lines).GetHashCode();
     }
 }

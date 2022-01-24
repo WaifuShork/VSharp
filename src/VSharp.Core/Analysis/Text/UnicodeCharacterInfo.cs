@@ -1,13 +1,13 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
+﻿namespace VSharp.Core.Analysis.Text;
+
 using System.Text;
+using System.Diagnostics;
+using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
 
-namespace VSharp.Core.Analysis.Text;
-
+[PublicAPI]
 public static class UnicodeCharacterInfo
 {
-
 	private const byte UnicodeCategoryMask = 0x1F;
 	private static ReadOnlySpan<byte> AsciiCharInfo => new byte[]
 	{
@@ -67,10 +67,10 @@ public static class UnicodeCharacterInfo
 			return false;
 		}
 		
-		return IsLetterChar(GetUnicodeCategory(new Rune(ch)));
+		return IsLetterChar(GetUnicodeCategory(ch.AsRune()));
 	}
 
-	public static bool IsIdentifierPartCharacter(char ch)
+	public static bool IsIdentifierPartCharacter( char ch)
 	{
 		if (ch < 'a')
 		{
@@ -92,7 +92,7 @@ public static class UnicodeCharacterInfo
 			return false;
 		}
 
-		var category = GetUnicodeCategory(new Rune(ch));
+		var category = GetUnicodeCategory(ch.AsRune());
 		return IsLetterChar(category)
 		       || IsDecimalDigitChar(category)
 		       || IsConnectingChar(category)
@@ -100,7 +100,7 @@ public static class UnicodeCharacterInfo
 		       || IsFormattingChar(category);
 	}
 	
-	private static bool IsLetterChar(UnicodeCategory category)
+	private static bool IsLetterChar( UnicodeCategory category)
 	{
 		switch (category)
 		{
@@ -116,7 +116,7 @@ public static class UnicodeCharacterInfo
 		}
 	}
 
-	public static UnicodeCategory GetUnicodeCategory(Rune value)
+	public static UnicodeCategory GetUnicodeCategory( Rune value)
 	{
 		if (value.IsAscii)
 		{
@@ -126,7 +126,7 @@ public static class UnicodeCharacterInfo
 		return GetUnicodeCategoryNonAscii(value);
 	}
 	
-	private static bool IsCombiningChar(UnicodeCategory category)
+	private static bool IsCombiningChar( UnicodeCategory category)
 	{
 		switch (category)
 		{
@@ -138,28 +138,28 @@ public static class UnicodeCharacterInfo
 		}
 	}
 	
-	public static UnicodeCategory GetUnicodeCategoryNonAscii(Rune value)
+	public static UnicodeCategory GetUnicodeCategoryNonAscii( Rune value)
 	{
 		Debug.Assert(!value.IsAscii, "shouldn't use this non-optimized code path for ASCII characters");
 		return CharUnicodeInfo.GetUnicodeCategory(value.Value);
 	}
 
-	private static bool IsDecimalDigitChar(UnicodeCategory category)
+	private static bool IsDecimalDigitChar( UnicodeCategory category)
 	{
 		return category == UnicodeCategory.DecimalDigitNumber;
 	}
 	
-	private static bool IsConnectingChar(UnicodeCategory category)
+	private static bool IsConnectingChar( UnicodeCategory category)
 	{
 		return category == UnicodeCategory.ConnectorPunctuation;
 	}
 	
-	public static bool IsFormattingChar(char ch)
+	public static bool IsFormattingChar( char ch)
 	{
-		return ch > 127 && IsFormattingChar(GetUnicodeCategory(new Rune(ch)));
+		return ch > 127 && IsFormattingChar(GetUnicodeCategory(ch.AsRune()));
 	}
 	
-	private static bool IsFormattingChar(UnicodeCategory category)
+	private static bool IsFormattingChar( UnicodeCategory category)
 	{
 		return category == UnicodeCategory.Format;
 	}

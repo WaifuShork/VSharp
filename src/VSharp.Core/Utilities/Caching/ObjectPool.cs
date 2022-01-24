@@ -2,11 +2,10 @@
 #define DETECT_LEAKS
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 
 namespace VSharp.Core.Utilities.Caching;
 
-public delegate TReturn Func<TArg, TReturn>(TArg arg);
+public delegate TReturn Func<in TArg, out TReturn>(TArg arg);
 
 public class ObjectPool<T> where T : class
 {
@@ -40,27 +39,25 @@ public class ObjectPool<T> where T : class
 		{
 #if TRACE_LEAKS
 			return Trace == null ? "" : Trace.ToString();
-#endif
+#else
 			return "leak tracing information is disabled, define TRACE_LEAKS on ObjectPool to get more info\n";
+#endif
 		}
 
 		~LeakTracker()
 		{
-			if (!m_disposed && !Environment.HasShutdownStarted)
+			if (m_disposed || Environment.HasShutdownStarted)
 			{
-				var trace = GetTrace();
-				Debug.WriteLine("TRACE_OBJECTPOOL_LEAKS_BEGIN\n" +
-				                $"Pool detected potential leaking of {typeof(T)}\n" +
-				                $"Location of the leak: {GetTrace()} TRACE_OBJECTPOOL_LEAKS_END");
+				return;
 			}
+			
+			Debug.WriteLine("TRACE_OBJECTPOOL_LEAKS_BEGIN\n" +
+			                $"Pool detected potential leaking of {typeof(T)}\n" +
+			                $"Location of the leak: {GetTrace()} TRACE_OBJECTPOOL_LEAKS_END");
 		}
 	}
 
-	public ObjectPool(Factory factory)
-		: this(factory, Environment.ProcessorCount * 2)
-	{
-		
-	}
+	public ObjectPool(Factory factory) : this(factory, Environment.ProcessorCount * 2) { }
 
 	public ObjectPool(Factory factory, int size)
 	{
@@ -93,10 +90,11 @@ public class ObjectPool<T> where T : class
 #if DETECT_LEAKS
 		var tracker = new LeakTracker();
 		m_leakTrackers.Add(instance, tracker);
+#endif
+
 #if TRACE_LEAKS
 		var frame = CaptureStackTrace();
 		tracker.Trace = frame;
-#endif
 #endif
 
 		return instance;
@@ -165,15 +163,19 @@ public class ObjectPool<T> where T : class
 			                $"Callstack: {Environment.NewLine}{trace} TRACE_OBJECTPOOL_LEAKS_END");
 		}
 
-		if (replacement is not null)
+		if (replacement is null)
 		{
-			tracker = new LeakTracker();
-			m_leakTrackers.Add(replacement, tracker);
+			return;
 		}
+		
+		tracker = new LeakTracker();
+		m_leakTrackers.Add(replacement, tracker);
 #endif
 	}
-
-	private static Lazy<Type> m_stackTraceType = new(() => Type.GetType("System.Diagnostics.StackTrace") ?? typeof(StackTrace));
+	
+	// NOTICE: it's fine that this field is static, because its existence isn't affected by what the generic type is 
+	// ReSharper disable once StaticMemberInGenericType
+	private static readonly Lazy<Type> m_stackTraceType = new(() => Type.GetType("System.Diagnostics.StackTrace") ?? typeof(StackTrace));
 
 	private static object? CaptureStackTrace()
 	{

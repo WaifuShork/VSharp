@@ -1,14 +1,52 @@
 ﻿namespace VSharp.Core.Extensions;
 
+using System.Globalization;
+using WaifuShork.Extensions;
+
 public static class StringExtensions
 {
-	public static char At(this string str, int index)
+	public static IEnumerable<string> SplitToLines(this string? input)
 	{
-		if (!index.IsWithinBounds(str))
+		if (string.IsNullOrWhiteSpace(input))
 		{
-			return '\0';
+			yield break;
+		}
+
+		using var reader = new StringReader(input);
+		string? line;
+		while (!string.IsNullOrWhiteSpace(line = reader.ReadLine()))
+		{
+			yield return line;
+		}
+	}
+	
+	public static char At(this string? str, int index)
+	{
+		if (string.IsNullOrWhiteSpace(str) || !index.IsWithinBounds(str))
+		{
+			return CharacterInfo.InvalidCharacter;
 		}
 		
 		return str[index];
+	}
+
+	public static string From(this string? str, Range range)
+	{
+		if (string.IsNullOrWhiteSpace(str) || !range.Start.Value.IsWithinBounds(str) && !range.Start.Value.IsWithinBounds(str))
+		{
+			return CharacterInfo.InvalidCharacter.ToString();
+		}
+
+		return str[range];
+	}
+
+	public static char FromHex(this string? str)
+	{
+		if (string.IsNullOrWhiteSpace(str) || !short.TryParse(str, NumberStyles.AllowHexSpecifier, CultureInfo.CurrentCulture, out var chr))
+		{
+			return CharacterInfo.InvalidCharacter;
+		}
+		
+		return chr.As<char>();
 	}
 }

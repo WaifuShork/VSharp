@@ -1,10 +1,14 @@
 ﻿namespace VSharp.Core.Analysis.Text;
 
+[PublicAPI]
 public sealed class TextLine
 {
 	public TextLine(in SourceText text, int start, int length, int lengthIncludingLineBreak)
 	{
-		
+		Text = text;
+		Start = start;
+		Length = length;
+		LengthIncludingLineBreak = lengthIncludingLineBreak;
 	}
 	
 	public SourceText Text { get; }

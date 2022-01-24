@@ -1,17 +1,23 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+﻿namespace VSharp.Core.Analysis.Text;
+
+using System.Diagnostics;
 using System.Globalization;
-using System.Text;
+using System.Diagnostics.CodeAnalysis;
 
-namespace VSharp.Core.Analysis.Text;
-
+[PublicAPI]
 public static class CharacterInfo
 {
+	// A constant value that would never logically represent a valid token or character 
+	// in the stream of characters from the source text
+	public const char InvalidCharacter = char.MaxValue; // (char) 0xFFFF
+
+	public const string Tab = "    ";
+
 	public static bool IsHexDigit(this char c)
 	{
-		return c >= '0' && c <= '9' ||
-		       c >= 'A' && c <= 'F' ||
-		       c >= 'a' && c <= 'f';
+		return c >= '0' && c <= '9' 
+	        || c >= 'A' && c <= 'F' 
+	        || c >= 'a' && c <= 'f';
 	}
 	
 	public static bool IsBinaryDigit(this char c)
@@ -27,8 +33,8 @@ public static class CharacterInfo
 	public static bool IsQualifiedDigit(this char c)
 	{
 		return c.IsDecimalDigit()
-		       || c.IsBinaryDigit()
-		       || c.IsHexDigit();
+		    || c.IsBinaryDigit()
+		    || c.IsHexDigit();
 	}
 	
 	public static int HexValue(this char c)
@@ -53,10 +59,10 @@ public static class CharacterInfo
 	// -----------------------+-----------------------
 	// UppercaseLetter         "Lu" (letter, uppercase)
 	// LowercaseLetter         "Ll" (letter, lowercase)
-	// TitlecaseLetter         "Lt" (letter, titlecase)
+	// TitlecaseLetter         "Lt" (letter, title-case)
 	// ModifierLetter          "Lm" (letter, modifier)
 	// OtherLetter             "Lo" (letter, other)
-	// NonSpacingMark          "Mn" (mark, nonspacing)
+	// NonSpacingMark          "Mn" (mark, non-spacing)
 	// SpacingCombiningMark    "Mc" (mark, spacing combining)
 	// EnclosingMark           "Me" (mark, enclosing)
 	// DecimalDigitNumber      "Nd" (number, decimal digit)
@@ -81,26 +87,25 @@ public static class CharacterInfo
 	// ModifierSymbol          "Sk" (symbol, modifier)
 	// OtherSymbol             "So" (symbol, other)
 	// OtherNotAssigned        "Cn" (other, not assigned)
-	
 	public static bool IsWhiteSpace(this char ch)
 	{
 		return ch == ' '
-	       || ch == '\t'
-	       || ch == '\v'
-	       || ch == '\f'
-	       || ch == '\u00A0' // NO-BREAK SPACE
-	       || ch == '\uFEFF'
-	       || ch == '\u001A'
-	       || (ch > 255 && CharUnicodeInfo.GetUnicodeCategory(ch) == UnicodeCategory.SpaceSeparator);
+	        || ch == '\t'
+	        || ch == '\v'
+	        || ch == '\f'
+	        || ch == '\u00A0' // NO-BREAK SPACE
+	        || ch == '\uFEFF'
+	        || ch == '\u001A'
+	        || (ch > 255 && CharUnicodeInfo.GetUnicodeCategory(ch) == UnicodeCategory.SpaceSeparator);
 	}
 	
 	public static bool IsNewLine(this char ch)
 	{
 		return ch == '\r'
-	       || ch == '\n'
-	       || ch == '\u0085'
-	       || ch == '\u2028'
-	       || ch == '\u2029';
+		    || ch == '\n'
+		    || ch == '\u0085'
+		    || ch == '\u2028'
+		    || ch == '\u2029';
 	}
 	
 	public static bool IsIdentifierStartCharacter(this char ch)

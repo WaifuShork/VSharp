@@ -1,10 +1,18 @@
-﻿using Spectre.Console;
-using VSharp.Core.Utilities.IO;
-using VSharp.Core.Analysis.Text;
-using VSharp.Core.Analysis.Lexing;
-using VSharp.Core.Analysis.Syntax;
-using WaifuShork.Common.Extensions;
+﻿using System.Collections;
+using System.Text;
+using System.Globalization;using System.Reflection;
+using System.Runtime.CLR;
 using Color = System.Drawing.Color;
+
+using VSharp.Core.Extensions;
+using VSharp.Core.Configuration;
+using VSharp.Core.Analysis.Text;
+using VSharp.Core.Analysis.Syntax;
+using VSharp.Core.Analysis.Lexing;
+using VSharp.Core.Analysis.Diagnostics;
+
+using Spectre.Console;
+using WaifuShork.Common.Extensions;
 
 namespace VSharp;
 
@@ -16,7 +24,8 @@ public static class VSharp
         {
             return await ExecuteReplAsync(args);
         }
-
+        
+        // get arguments after the initial "vsharp run" / "vsharp start" command
         var newArgs = args.Length > 1 ? args[1..args.Length] : null;
         if (args[0] == "run")
         {
@@ -38,116 +47,153 @@ public static class VSharp
             return 1;
         }
 
-        var threadedLexer = new ThreadedLexer(sourceFiles);
-        if (threadedLexer.IsCompleted)
+        IReadOnlyList<DiagnosticInfo> diagnostics;
+        IReadOnlyList<ISyntaxToken> tokens;
+        
+        if (sourceFiles.Count > 1)
         {
-            // then we parse, but none of this code will stay here
-            var tokens = threadedLexer.GetAllTokens();
-            foreach (var token in tokens)
-            {
-                await Vonsole.WriteLineAsync(token.ToString(Formatting.Indented));
-            }
-        }
-
-        return 0;
-    }
-    
-    private static async Task<int> ExecuteReplAsync(string[]? args = null)
-    {
-        await Vonsole.WriteLineAsync($"VSharp {"v0.5".ColorizeForeground(Color.Purple)}");
-        while (true)
-        {
-            await Console.Out.WriteAsync("> ".ColorizeForeground(Color.Cyan));
-            var input = await Console.In.ReadLineAsync();
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                break;
-            }
-
-            var threadedLexer = new ThreadedLexer(new[] { SourceText.From(input) });
-            while (!threadedLexer.IsCompleted)
-            {
-                await Task.Delay(5);
-            }
-
-            var tokens = threadedLexer.GetAllTokens();
-            var diagnostics = threadedLexer.GetAllDiagnostics();
-
+            var threadedLexer = new ThreadedLexer(sourceFiles);
+            threadedLexer.Wait();
+            tokens = threadedLexer.GetAllTokens();
+            diagnostics = threadedLexer.GetStaticDiagnostics();
             if (!diagnostics.Any())
             {
                 foreach (var token in tokens)
                 {
-                    await Vonsole.WriteLineAsync(token.ToString(Formatting.Indented));
-                }
+                    await Console.Out.WriteLineAsync(token.ToString(Formatting.Expanded));
+                }    
             }
             else
             {
                 foreach (var diagnostic in diagnostics)
                 {
-                    await Vonsole.WriteAsync("");
-                    await Vonsole.WriteLineAsync(diagnostic.Message.ColorizeForeground(Color.DarkRed));
+                    diagnostic.Format();
                 }
             }
-            
 
-            /*var tokens = Lexer.ScanSyntaxTokens(SourceText.From(input), out var diagnostics);
-            if (diagnostics.Any())
-            {
-                foreach (var diagnostic in diagnostics)
-                {
-                    await VConsole.WriteLineAsync(diagnostic.Message);
-                }
-            }
-            
-            foreach (var token in tokens)
-            {
-                Console.WriteLine(token.ToString());
-            }*/
+            return 0;    
         }
 
+        var source = sourceFiles[0];
+        if (source is null || source.ToString(CultureInfo.CurrentCulture).IsNullOrWhiteSpace())
+        {
+            return 1;
+        }
+        
+        try
+        {
+            tokens = Lexer.ScanSyntaxTokens(source, out diagnostics);
+        }
+        catch (Exception exception)
+        {
+            AnsiConsole.WriteException(exception);
+            return 1;
+        }
+
+        if (!diagnostics.Any())
+        {
+            foreach (var token in tokens)
+            {
+                await Console.Out.WriteLineAsync(token.ToString(Formatting.Expanded));
+            }
+        }
+
+        foreach (var diagnostic in diagnostics)
+        {
+            await diagnostic.DumpAsync();
+        }
+
+        return 1;
+    }
+    
+    private static async Task<int> ExecuteReplAsync(string[]? args = null)
+    {
+        await Console.Out.WriteLineAsync($"VSharp [{LanguageVersion.VSharpAlpha.String().ColorizeForeground(Color.Purple)}]");
+
+        var currentLine = 1;
+        var textBuilder = new StringBuilder();
+        while (true)
+        {
+            await Console.Out.WriteAsync($"({currentLine})> ".ColorizeForeground(Color.Cyan)); 
+            
+            var input = await Console.In.ReadLineAsync();
+            if (input == "#reset")
+            {
+                currentLine = 1;
+                textBuilder.Clear();
+                Console.Clear();
+                await Console.Out.WriteLineAsync($"VSharp [{LanguageVersion.VSharpAlpha.String().ColorizeForeground(Color.Purple)}]");
+                continue;
+            }
+            if (input == "#submit")
+            {
+                currentLine = 1;
+                goto output;    
+            }
+            
+            if (currentLine < int.MaxValue)
+            {
+                currentLine++;
+                textBuilder.AppendLine(input);
+                continue;
+            }
+            
+            output:
+            var text = textBuilder.ToString();
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                break;
+            }
+            
+            var source = SourceText.From(text);
+            var syntaxTree = SyntaxTree.Parse(source);
+            
+            await syntaxTree.Root.WriteToAsync(Console.Out);
+
+            if (syntaxTree.Diagnostics.Any())
+            {
+                await syntaxTree.Diagnostics.DumpDiagnosticsAsync();
+            }
+
+            textBuilder.Clear();
+            /*if (!syntaxTree.Diagnostics.Any())
+            {
+                var e = new Evaluator(syntaxTree.Root);
+                var result = e.Evaluate();
+                Console.WriteLine(result);
+            }
+            else
+            {
+                await syntaxTree.Diagnostics.DumpDiagnosticsAsync();
+            }*/
+        }
+        
         return 0;
     }
 
     private static string[]? CollectSourceFiles(string directory, string extension)
     {
-        if (string.IsNullOrWhiteSpace(directory))
-        {
-            Console.Error.WriteLine("error: directory cannot be null, empty, or whitespace".ColorizeForeground(Color.DarkRed));
-            return null;
-        }
-
-        if (string.IsNullOrWhiteSpace(extension))
-        {
-            Console.Error.WriteLine("error: extension cannot be null, empty, or whitespace".ColorizeForeground(Color.DarkRed));
-            return null;
-        }
-
-        if (!Directory.Exists(directory))
-        {
-            Console.Error.WriteLine($"error: the directory '{directory}' cannot be located".ColorizeForeground(Color.DarkRed));
-            return null;
-        }
-
         try
         {
+            ArgumentNullException.ThrowIfNull(directory, "error: directory cannot be null, empty, or whitespace".ColorizeForeground(Color.DarkRed));
+            ArgumentNullException.ThrowIfNull(extension, "error: extension cannot be null, empty, or whitespace".ColorizeForeground(Color.DarkRed));
+            ArgumentNullException.ThrowIfNull(directory, $"error: the directory '{directory}' cannot be located".ColorizeForeground(Color.DarkRed));
             return Directory.GetFiles(directory, $"*.{extension}", SearchOption.AllDirectories);
         }
-        catch (UnauthorizedAccessException unauthorizedAccessException)
+        catch (Exception exception)
         {
-            Console.Error.WriteLine("error: you have insufficient permissions".ColorizeForeground(Color.DarkRed));
-            AnsiConsole.WriteException(unauthorizedAccessException);
+            AnsiConsole.WriteException(exception);
+            return null;
         }
-        catch (PathTooLongException pathTooLongException)
-        {
-            Console.Error.WriteLine("error: the specified path, file name, or both exceed the system-defined maximum length".ColorizeForeground(Color.DarkRed));
-            AnsiConsole.WriteException(pathTooLongException);
-        }
-        catch (IOException ioException)
-        {
-            Console.Error.WriteLine("error: path is a file name. -or- A network error has occurred".ColorizeForeground(Color.DarkRed));
-            AnsiConsole.WriteException(ioException);
-        }
-        
-        return null;
+    }
+
+    private static async Task<string?> ReadLineAsync(TimeSpan timeout)
+    {
+        var task = Task.Factory.StartNew(Console.In.ReadLineAsync);
+        var completedTask = await Task.WhenAny(task, Task.Delay(timeout));
+        return ReferenceEquals(task, completedTask) ? await task.Result : string.Empty;
     }
 }
+
+
+

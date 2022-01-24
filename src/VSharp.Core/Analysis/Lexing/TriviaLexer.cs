@@ -1,72 +1,79 @@
-﻿using VSharp.Core.Analysis.Syntax;
-using VSharp.Core.Analysis.Text;
+﻿using FluentAssertions;
 
 namespace VSharp.Core.Analysis.Lexing;
 
+using System.Text;
+using Microsoft.Toolkit.Diagnostics;
+
 public partial class Lexer
 {
-	private void ScanSyntaxTrivia(TriviaKind kind)
-    {
-	    m_triviaBuilder.Clear();
-	    var done = false;
+	// Trivia gets the same position as the token it's attached to because that makes it easier 
+	// to locate a trivia based on the token, no extra math will or off-by-one errors will need to
+	// be taken care of with extra precautions
+	private IReadOnlyList<SyntaxTrivia> ScanSyntaxTrivia(TriviaKind kind)
+	{
+		var builder = new List<SyntaxTrivia>();
+		var done = false;
 	    while (!done && !IsAtEnd)
 	    {
 		    m_start = m_position;
-		    m_kind = SyntaxKind.BadToken;
-		    m_value = null;
 
 		    switch (Current)
 		    {
 			    // we've clearly hit something wonky
-			    case InvalidCharacter:
+			    case CharacterInfo.InvalidCharacter:
+			    {
 				    done = true;
 				    break;
+			    }
 			    case '/':
+			    {
 				    if (Next == '/')
 				    {
-					    ScanSingleLineComment();
+					    builder.Add(ScanSingleLineComment());
 				    }
 				    else if (Next == '*')
 				    {
-					    ScanMultiLineComment();
+					    builder.Add(ScanMultiLineComment());
 				    }
 				    else
 				    {
 					    done = true;
 				    }
-
+				    
 				    break;
+			    }
 			    case var _ when Current.IsNewLine():
+			    {
 				    if (kind == TriviaKind.Trailing)
 				    {
 					    done = true;
 				    }
-				    ScanLineBreak();
+				    builder.Add(ScanLineBreak());
 				    break;
-				case var _ when Current.IsWhiteSpace(): 
-				    ScanWhiteSpace();
-				    break;
+			    }
 			    case var _ when Current.IsWhiteSpace():
-				    ScanWhiteSpace();
+			    {
+				    builder.Add(ScanWhiteSpace());
 				    break;
+			    }
+			    case var _ when Current.IsWhiteSpace():
+			    {
+				    builder.Add(ScanWhiteSpace());
+				    break;
+			    }
 			    default:
+			    {
 				    done = true;
 				    break;
-		    }
-
-		    var length = m_position - m_start;
-		    if (length <= 0)
-		    {
-			    continue;
-		    }
-		    
-		    var text = GetFullSpan();
-		    var trivia = new SyntaxTrivia(m_kind, m_start, text);
-		    m_triviaBuilder.Add(trivia);
+			    }
+		    } 
 	    }
+
+	    return builder;
     }
 
-    private void ScanLineBreak()
+    private SyntaxTrivia ScanLineBreak()
     {
 	    if (Current == '\r' && Next == '\n')
 	    {
@@ -77,19 +84,21 @@ public partial class Lexer
 	    {
 		    Advance();
 	    }
-
-	    m_kind = SyntaxKind.NewLineToken;
+	    
+	    return new SyntaxTrivia(SyntaxKind.NewLineToken, m_tokenPosition, GetFullSpan());
     }
 
-    private void ScanSingleLineComment()
+    private SyntaxTrivia ScanSingleLineComment()
     {
-	    Advance(2);
+	    Current.Should().Be('/');
+	    Next.Should().Be('/');
+	    Advance(2); // jump past the two forward slashes 
 	    var done = false;
 	    while (!done && !IsAtEnd)
 	    {
 		    switch (Current)
 		    {
-			    case InvalidCharacter:
+			    case CharacterInfo.InvalidCharacter: // a comment can be on the last line so eof character is okay
 			    case var _ when Current.IsNewLine():
 				    done = true;
 				    break;
@@ -98,22 +107,24 @@ public partial class Lexer
 				    break;
 		    }
 	    }
-
-	    m_kind = SyntaxKind.SingleLineCommentToken;
+	    
+	    return new SyntaxTrivia(SyntaxKind.SingleLineCommentToken, m_tokenPosition, GetFullSpan());
     }
 
-    private void ScanMultiLineComment()
+    private SyntaxTrivia ScanMultiLineComment()
     {
-	    Advance(2);
+	    Current.Should().Be('/');
+	    Next.Should().Be('*');
+	    Advance(2); // jump past the forward slash and asterisk 
 	    var done = false;
 	    while (!done && !IsAtEnd)
 	    {
 		    switch (Current)
 		    {
-			    case InvalidCharacter:
+			    case CharacterInfo.InvalidCharacter:
 				    var span = new TextSpan(m_start, 2);
 				    var location = new TextLocation(m_source, span);
-				    // unterminated multiline comment
+				    m_diagnostics.ReportUnterminatedMultiLineComment(location, out _);
 				    done = true;
 				    break;
 			    case '*':
@@ -133,17 +144,32 @@ public partial class Lexer
 				    break;
 		    }
 	    }
-
-	    m_kind = SyntaxKind.MultiLineCommentToken;
+	    
+	    return new SyntaxTrivia(SyntaxKind.MultiLineCommentToken, m_tokenPosition, GetFullSpan());
     }
     
-    private void ScanWhiteSpace()
+    private SyntaxTrivia ScanWhiteSpace()
     {
 	    while (char.IsWhiteSpace(Current) && !IsAtEnd)
 	    {
 		    Advance();
 	    }
 
-	    m_kind = SyntaxKind.WhiteSpaceToken;
+	    var whitespace = GetFullSpan();
+	    var sb = new StringBuilder();
+	    
+	    // let's identify the whitespace types
+	    foreach (var space in whitespace)
+	    {
+		    if (whitespace[^1] == space)
+		    {
+			    sb.Append(space.ToHexString());
+		    }
+		    else
+		    {
+			    sb.Append($"{space.ToHexString()},");
+		    }
+	    }
+	    return new SyntaxTrivia(SyntaxKind.WhiteSpaceToken, m_tokenPosition, sb.ToString());
     }
 }

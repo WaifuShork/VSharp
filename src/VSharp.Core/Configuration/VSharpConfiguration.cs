@@ -1,13 +1,13 @@
-﻿using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿namespace VSharp.Core.Configuration;
+
+using System.Text;
 using Spectre.Console;
-using WaifuShork.Common.Extensions;
-using WaifuShork.Common.Formatters;
+using System.Text.Json;
 using Color = System.Drawing.Color;
+using WaifuShork.Common.Extensions;
+using System.Text.Json.Serialization;
 
-namespace VSharp.Core.Configuration;
-
+[PublicAPI]
 public class VSharpConfiguration
 {
 	[JsonPropertyName("AssemblyName"), JsonIgnore(Condition = JsonIgnoreCondition.Never)]
@@ -51,6 +51,7 @@ public class VSharpConfiguration
 	}
 }
 
+[PublicAPI]
 public class CompilerOptions
 {
 	[JsonPropertyName("FileResolver"), JsonIgnore(Condition = JsonIgnoreCondition.Never)]

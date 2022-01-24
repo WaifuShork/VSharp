@@ -1,5 +1,6 @@
 ﻿namespace VSharp.Core.Analysis.Text;
 
+[PublicAPI]
 public readonly struct TextSpan
 {
 	public TextSpan(int start, int length)
@@ -10,7 +11,7 @@ public readonly struct TextSpan
 	
 	public int Start { get; }
 	public int Length { get; }
-	public int End => Start + End;
+	public int End => Start + Length;
 
 	public static TextSpan FromBounds(int start, int end)
 	{
