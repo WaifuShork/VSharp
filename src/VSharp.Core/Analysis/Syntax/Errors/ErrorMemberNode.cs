@@ -3,7 +3,7 @@
 [PublicAPI]
 public sealed class ErrorMemberNode : MemberSyntax
 {
-	public ErrorMemberNode(DiagnosticInfo diagnostic)
+	public ErrorMemberNode(in DiagnosticInfo diagnostic)
 	{
 		Diagnostic = diagnostic;
 	}

@@ -3,7 +3,7 @@
 [PublicAPI]
 public sealed class BooleanLiteralExpressionSyntax : ExpressionSyntax
 {
-	public BooleanLiteralExpressionSyntax(SyntaxToken<bool> boolToken)
+	public BooleanLiteralExpressionSyntax(in SyntaxToken<bool> boolToken)
 	{
 		BoolToken = boolToken;
 	}

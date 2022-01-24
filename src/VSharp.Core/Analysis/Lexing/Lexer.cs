@@ -27,7 +27,7 @@ public partial class Lexer
     private int m_line; // current line of the "file" 
     private int m_tokenPosition;
 
-    private Lexer(SourceText source)
+    private Lexer(in SourceText source)
     {
 	    m_source = source;
 	    m_srcLength = source.Length;
@@ -42,11 +42,11 @@ public partial class Lexer
     private char Next => Peek(1);
 
     private bool IsAtEnd => m_position >= m_srcLength;
-    private Lazy<IEnumerable<DiagnosticInfo>> Diagnostics => m_diagnostics.Cache;
+    private Lazy<IReadOnlyList<DiagnosticInfo>> Diagnostics => m_diagnostics.Cache;
 
-    public static IReadOnlyList<ISyntaxToken> ScanSyntaxTokens(SourceText source, out IReadOnlyList<DiagnosticInfo> diagnostics)
+    public static IReadOnlyList<ISyntaxToken> ScanSyntaxTokens(in SourceText source, out IReadOnlyList<DiagnosticInfo> diagnostics)
     {
-	    var lexer = new Lexer(source);
+	    var lexer = new Lexer(in source);
 	    var tokens = new List<ISyntaxToken>();
 
 	    while (true)
@@ -67,23 +67,23 @@ public partial class Lexer
 		    }
 	    }
 	    
-	    diagnostics = lexer.Diagnostics.Value.ToList();
+	    diagnostics = lexer.Diagnostics.Value;
 	    return tokens;
     }
 
-    private SyntaxToken<T> CreateToken<T>(SyntaxKind kind, string text, T value)
+    private SyntaxToken<T> CreateToken<T>(in SyntaxKind kind, in string text, in T value)
     {
-	    return new SyntaxToken<T>(Array.Empty<SyntaxTrivia>(), kind, text, value, m_tokenPosition, m_line, Array.Empty<SyntaxTrivia>());
+	    return new SyntaxToken<T>(Array.Empty<SyntaxTrivia>(), in kind, in text, in value, in m_tokenPosition, in m_line, Array.Empty<SyntaxTrivia>());
     }
 
-    private SyntaxToken<T> CreateToken<T>(IReadOnlyList<SyntaxTrivia> leading, SyntaxKind kind, string text, T value, IReadOnlyList<SyntaxTrivia> trailing)
+    private SyntaxToken<T> CreateToken<T>(in IReadOnlyList<SyntaxTrivia> leading, in SyntaxKind kind, in string text, in T value, in IReadOnlyList<SyntaxTrivia> trailing)
     {
-	    return new SyntaxToken<T>(leading, kind, text, value, m_tokenPosition, m_line, trailing);
+	    return new SyntaxToken<T>(in leading, in kind, in text, in value, in m_tokenPosition, in m_line, in trailing);
     }
 
-    private SyntaxToken<string> CreateToken(IReadOnlyList<SyntaxTrivia> leading, SyntaxKind kind, string text, IReadOnlyList<SyntaxTrivia> trailing)
+    private SyntaxToken<string> CreateToken(in IReadOnlyList<SyntaxTrivia> leading, in SyntaxKind kind, in string text, in IReadOnlyList<SyntaxTrivia> trailing)
     {
-	    return CreateToken(leading, kind, text, text, trailing);
+	    return CreateToken(in leading, in kind, in text, in text, in trailing);
     }
     
     // TODO: return syntax token here
@@ -99,79 +99,79 @@ public partial class Lexer
         {
 	        case CharacterInfo.InvalidCharacter:
 	        {
-		        return SyntaxToken<string>.EndOfFile(m_tokenPosition, m_line, leadingTrivia);
+		        return SyntaxToken<string>.EndOfFile(in m_tokenPosition, in m_line, in leadingTrivia);
 	        }
             case '.':
             {
 	            Advance();
 	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-	            return CreateToken(leadingTrivia, SyntaxKind.DotToken, ".", trailingTrivia);
+	            return CreateToken(in leadingTrivia, in SyntaxKind.DotToken, ".", in trailingTrivia);
             }
             case ',':
             {
 	            Advance();
 	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-	            return CreateToken(leadingTrivia, SyntaxKind.CommaToken, ",", trailingTrivia);
+	            return CreateToken(in leadingTrivia, in SyntaxKind.CommaToken, ",", in trailingTrivia);
             }
 			case '(':
             {
 	            Advance();
 	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-	            return CreateToken(leadingTrivia, SyntaxKind.OpenParenToken, "(", trailingTrivia);
+	            return CreateToken(in leadingTrivia, in SyntaxKind.OpenParenToken, "(", in trailingTrivia);
             }
 			case ')':
             {
 	            Advance();
 	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-	            return CreateToken(leadingTrivia, SyntaxKind.CloseParenToken, ")", trailingTrivia);
+	            return CreateToken(in leadingTrivia, in SyntaxKind.CloseParenToken, ")", in trailingTrivia);
             }
 			case '{':
             {
 	            Advance();
 	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-	            return CreateToken(leadingTrivia, SyntaxKind.OpenBraceToken, "{", trailingTrivia);
+	            return CreateToken(in leadingTrivia, in SyntaxKind.OpenBraceToken, "{", in trailingTrivia);
             }
 			case '}':
             {
 	            Advance();
 	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-	            return CreateToken(leadingTrivia, SyntaxKind.CloseBraceToken, "}", trailingTrivia);
+	            return CreateToken(in leadingTrivia, in SyntaxKind.CloseBraceToken, "}", in trailingTrivia);
             }
 			case '[':
             {
 	            Advance();
 	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-	            return CreateToken(leadingTrivia, SyntaxKind.OpenBracketToken, "[", trailingTrivia);
+	            return CreateToken(in leadingTrivia, in SyntaxKind.OpenBracketToken, "[", in trailingTrivia);
             }
 			case ']':
             {
 	            Advance();
 	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-	            return CreateToken(leadingTrivia, SyntaxKind.CloseBracketToken, "]", trailingTrivia);
+	            return CreateToken(in leadingTrivia, in SyntaxKind.CloseBracketToken, "]", in trailingTrivia);
             }
 			case ':':
             {
 	            Advance();
 	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-	            return CreateToken(leadingTrivia, SyntaxKind.ColonToken, ":", trailingTrivia);
+	            return CreateToken(in leadingTrivia, in SyntaxKind.ColonToken, ":", in trailingTrivia);
             }
 			case ';':
             {
 	            Advance();
 	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-	            return CreateToken(leadingTrivia, SyntaxKind.SemicolonToken, ";", trailingTrivia);
+	            return CreateToken(in leadingTrivia, in SyntaxKind.SemicolonToken, ";", in trailingTrivia);
             }
 			case '?':
             {
 	            Advance();
 	            var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-	            return CreateToken(leadingTrivia, SyntaxKind.QuestionMarkToken, "?", trailingTrivia);
+	            return CreateToken(in leadingTrivia, in SyntaxKind.QuestionMarkToken, "?", in trailingTrivia);
             }
 	        case '@':
 	        {
 		        Advance();
 		        var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-		        return CreateToken(leadingTrivia, SyntaxKind.AtToken, "@", trailingTrivia);
+		        return CreateToken(in leadingTrivia, in SyntaxKind.AtToken, "@", in trailingTrivia);
 	        }
 			case '^':
 				Advance();
@@ -181,13 +181,13 @@ public partial class Lexer
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.CaretEqualsToken, "^=", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.CaretEqualsToken, "^=", in trailingTrivia);
 					}
 
 					default:
 					{
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.CaretToken, "^", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.CaretToken, "^", in trailingTrivia);
 					}
 				}
 			case '~':
@@ -198,12 +198,12 @@ public partial class Lexer
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.TildeEqualsToken, "~=", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.TildeEqualsToken, "~=", in trailingTrivia);
 					}
 					default:
 					{
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.TildeEqualsToken, "~", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.TildeEqualsToken, "~", in trailingTrivia);
 					}
 				}
 			case '+':
@@ -214,19 +214,19 @@ public partial class Lexer
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.PlusPlusToken, "++", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.PlusPlusToken, "++", in trailingTrivia);
 					}
 					case '=':
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.PlusEqualsToken, "+=", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.PlusEqualsToken, "+=", in trailingTrivia);
 					}
 					default:
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.PlusToken, "+", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.PlusToken, "+", in trailingTrivia);
 					}
 				}
 			case '-':
@@ -237,24 +237,24 @@ public partial class Lexer
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.MinusMinusToken, "--", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.MinusMinusToken, "--", in trailingTrivia);
 					}
 					case '=':
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.MinusEqualsToken, "-=", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.MinusEqualsToken, "-=", in trailingTrivia);
 					}
 					case '>':
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.ArrowToken, "->", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.ArrowToken, "->", in trailingTrivia);
 					}
 					default:            
 					{
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.MinusToken, "-", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.MinusToken, "-", in trailingTrivia);
 					}
 				}
 			case '/':
@@ -265,12 +265,12 @@ public partial class Lexer
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.FSlashEqualsToken, "/=", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.FSlashEqualsToken, "/=", in trailingTrivia);
 					}
 					default:
 					{
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.FSlashToken, "/", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.FSlashToken, "/", in trailingTrivia);
 					}
 				}
 			case '*':
@@ -281,12 +281,12 @@ public partial class Lexer
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.AsteriskEqualsToken, "*=", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.AsteriskEqualsToken, "*=", in trailingTrivia);
 					}
 					default:
 					{
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.AsteriskToken, "*", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.AsteriskToken, "*", in trailingTrivia);
 					}
 				}
 			case '%':
@@ -297,12 +297,12 @@ public partial class Lexer
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.PercentEqualsToken, "%=", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.PercentEqualsToken, "%=", in trailingTrivia);
 					}
 					default:
 					{
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.PercentToken, "%", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.PercentToken, "%", in trailingTrivia);
 					}
 				}
 			case '=':
@@ -313,12 +313,12 @@ public partial class Lexer
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.EqualsEqualsToken, "==", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.EqualsEqualsToken, "==", in trailingTrivia);
 					}
 					default:
 					{
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.EqualsToken, "=", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.EqualsToken, "=", in trailingTrivia);
 					}
 				}
 			case '>':
@@ -329,7 +329,7 @@ public partial class Lexer
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.GreaterEqualsToken, ">=", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.GreaterEqualsToken, ">=", in trailingTrivia);
 					}
 					case '>':
 						Advance();
@@ -337,17 +337,17 @@ public partial class Lexer
 						{
 							Advance();
 							var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-							return CreateToken(leadingTrivia, SyntaxKind.GreaterGreaterEqualsToken, ">>=", trailingTrivia);
+							return CreateToken(in leadingTrivia, in SyntaxKind.GreaterGreaterEqualsToken, ">>=", in trailingTrivia);
 						}
 						else
 						{
 							var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-							return CreateToken(leadingTrivia, SyntaxKind.GreaterGreaterToken, ">>", trailingTrivia);
+							return CreateToken(in leadingTrivia, in SyntaxKind.GreaterGreaterToken, ">>", in trailingTrivia);
 						}	
 					default:
 					{
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.GreaterToken, ">", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.GreaterToken, ">", in trailingTrivia);
 					}
 				}
 			case '<':
@@ -358,7 +358,7 @@ public partial class Lexer
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.LessEqualsToken, "<=", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.LessEqualsToken, "<=", in trailingTrivia);
 					}
 					case '<':
 						Advance();
@@ -366,17 +366,17 @@ public partial class Lexer
 						{
 							Advance();
 							var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-							return CreateToken(leadingTrivia, SyntaxKind.LessLessEqualsToken, "<<=", trailingTrivia);
+							return CreateToken(in leadingTrivia, in SyntaxKind.LessLessEqualsToken, "<<=", in trailingTrivia);
 						}
 						else
 						{
 							var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-							return CreateToken(leadingTrivia, SyntaxKind.LessLessToken, "<<", trailingTrivia);
+							return CreateToken(in leadingTrivia, in SyntaxKind.LessLessToken, "<<", in trailingTrivia);
 						}	
 					default:
 					{
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.LessToken, "<", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.LessToken, "<", in trailingTrivia);
 					}
 				}
 			case '!':
@@ -387,12 +387,12 @@ public partial class Lexer
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.BangEqualsToken, "!=", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.BangEqualsToken, "!=", in trailingTrivia);
 					}
 					default:
 					{
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.BangToken, "!", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.BangToken, "!", in trailingTrivia);
 					}
 				}
 			case '|':
@@ -403,18 +403,18 @@ public partial class Lexer
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.PipeEqualsToken, "!=", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.PipeEqualsToken, "!=", in trailingTrivia);
 					}
 					case '|':
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.PipePipeToken, "||", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.PipePipeToken, "||", in trailingTrivia);
 					}
 					default:
 					{
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.PipeToken, "|", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.PipeToken, "|", in trailingTrivia);
 					}
 				}
 			case '&':
@@ -425,36 +425,36 @@ public partial class Lexer
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.AmpersandEqualsToken, "&=", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.AmpersandEqualsToken, "&=", in trailingTrivia);
 					}	
 					case '&':
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.AmpersandAmpersandToken, "&&", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.AmpersandAmpersandToken, "&&", in trailingTrivia);
 					}
 					default:
 					{
 						Advance();
 						var trailingTrivia = ScanSyntaxTrivia(TriviaKind.Trailing);
-						return CreateToken(leadingTrivia, SyntaxKind.AmpersandToken, "&", trailingTrivia);
+						return CreateToken(in leadingTrivia, in SyntaxKind.AmpersandToken, "&", in trailingTrivia);
 					}
 				}
 	        case '"':
 	        {
-		        return ScanStringLiteral('"', leadingTrivia);
+		        return ScanStringLiteral('"', in leadingTrivia);
 	        }
 	        case '\'':
 	        {
-		        return ScanCharLiteral('\'', leadingTrivia);
+		        return ScanCharLiteral('\'', in leadingTrivia);
 	        }
 	        case var letter when letter.IsIdentifierStartCharacter():
 	        {
-		        return ScanIdentifierOrKeyword(leadingTrivia);
+		        return ScanIdentifierOrKeyword(in leadingTrivia);
 	        }
 	        case var digit when digit.IsQualifiedDigit():
 	        {
-		        return ScanNumericLiteral(leadingTrivia);
+		        return ScanNumericLiteral(in leadingTrivia);
 	        }
 	        default:
 	        {
@@ -467,7 +467,7 @@ public partial class Lexer
         }
 
         // Unlikely to be null, but still
-        return token ?? CreateToken(leadingTrivia, SyntaxKind.BadToken, "ERROR", ImmutableArray<SyntaxTrivia>.Empty);
+        return token ?? CreateToken(in leadingTrivia, in SyntaxKind.BadToken, "ERROR", ImmutableArray<SyntaxTrivia>.Empty);
     }
 
     private string GetFullSpan()
@@ -480,11 +480,11 @@ public partial class Lexer
 		    (m_start < 0 && length < 0).Should().BeFalse("start and length cannot be negative");
 		    (m_start < int.MaxValue && length < int.MaxValue).Should().BeTrue("start and length cannot be greater than int.MaxValue");
 		    
-		    return m_source.Substring(m_start, length);
+		    return m_source.Substring(in m_start, in length);
 	    }
     }
 
-    private ISyntaxToken ScanIdentifierToken(IReadOnlyList<SyntaxTrivia> leading, int32 numberLength)
+    private ISyntaxToken ScanIdentifierToken(in IReadOnlyList<SyntaxTrivia> leading, in int32 numberLength)
     {
 	    // language spec denotes that numeric prefixed identifiers can only have a number less than 10 in length,
 	    // the value of the number is inconsequential due to the fact it will become a string 
@@ -497,10 +497,10 @@ public partial class Lexer
 	    // insert an underscore for CLR compatibility
 	    var text = "_" + GetFullSpan();
 	    var trailing = ScanSyntaxTrivia(TriviaKind.Trailing);
-	    return CreateToken(leading, SyntaxKind.IdentifierToken, text, text, trailing);
+	    return CreateToken(in leading, in SyntaxKind.IdentifierToken, in text, in text, in trailing);
     }
     
-    private ISyntaxToken ScanIdentifierOrKeyword(IReadOnlyList<SyntaxTrivia> leading)
+    private ISyntaxToken ScanIdentifierOrKeyword(in IReadOnlyList<SyntaxTrivia> leading)
     {
 	    m_start = m_position;
 	    while ((char.IsLetterOrDigit(Current) || Current == '_') && !IsAtEnd)
@@ -509,16 +509,16 @@ public partial class Lexer
 	    }
 
 	    var text = GetFullSpan();
-	    var kind = m_syntaxCache.LookupKeyword(text);
+	    var kind = m_syntaxCache.LookupKeyword(in text);
 	    var trailing = ScanSyntaxTrivia(TriviaKind.Trailing);
 	    if (kind != SyntaxKind.TrueKeyword && kind != SyntaxKind.FalseKeyword)
 	    {
-		    return CreateToken(leading, kind, text, text, trailing);
+		    return CreateToken(in leading, in kind, in text, in text, in trailing);
 	    }
 
 	    return text == "true"
-		    ? CreateToken(leading, kind, text, true, trailing)
-		    : CreateToken(leading, kind, text, false, trailing);
+		    ? CreateToken(in leading, in kind, in text, true, in trailing)
+		    : CreateToken(in leading, in kind, in text, false, in trailing);
     }
 
     private char Peek(int offset = 0)

@@ -7,11 +7,11 @@ public class SyntaxCache
 {
 	private readonly CultureInfo m_compilerCulture;
 
-	public SyntaxCache()
+	public SyntaxCache(in CultureInfo? compilerCulture = default)
 	{
 		// We always want to use the US English representation for ToLower and ToUpper for searching 
 		// with keywords and using compiler defined keywords
-		m_compilerCulture = CultureInfo.GetCultureInfo("en-us");
+		m_compilerCulture = compilerCulture ?? CultureInfo.GetCultureInfo("en-us");
 	}
 	
 	public bool IsUserOrPredefinedKind(in ISyntaxToken token)
@@ -39,7 +39,7 @@ public class SyntaxCache
 		return SyntaxKind.IdentifierToken;
 	}
 
-	public string? LookupText(SyntaxKind kind)
+	public string? LookupText(in SyntaxKind kind)
 	{
 		if (s_stringCache.Value.TryGetValue(kind, out var text))
 		{
@@ -49,7 +49,7 @@ public class SyntaxCache
 		return null;
 	}
 
-	public int GetBinaryPrecedence(SyntaxKind kind)
+	public int GetBinaryPrecedence(in SyntaxKind kind)
 	{
 		if (m_binaryPrecedences.Value.TryGetValue(kind, out var precedence))
 		{
@@ -59,7 +59,7 @@ public class SyntaxCache
 		return 0;
 	}
 	
-	public int GetUnaryPrecedence(SyntaxKind kind)
+	public int GetUnaryPrecedence(in SyntaxKind kind)
 	{
 		if (m_unaryPrecedences.Value.TryGetValue(kind, out var precedence))
 		{
@@ -72,7 +72,7 @@ public class SyntaxCache
 	// <op> <right>
 	private readonly Lazy<Dictionary<SyntaxKind, int>> m_unaryPrecedences = new(() => new Dictionary<SyntaxKind, int>
 	{
-		{SyntaxKind.PlusToken, 15},
+		{ SyntaxKind.PlusToken, 15 },
 		{ SyntaxKind.PlusPlusToken, 15 },
 		{ SyntaxKind.MinusToken, 15 },
 		{ SyntaxKind.MinusMinusToken, 15 },
@@ -80,7 +80,6 @@ public class SyntaxCache
 		{ SyntaxKind.TildeToken, 15 },
 		
 	}, LazyThreadSafetyMode.ExecutionAndPublication);
-
 	
 	// <left> <op> <right>
 	private readonly Lazy<Dictionary<SyntaxKind, int>> m_binaryPrecedences = new(() => new Dictionary<SyntaxKind, int>
@@ -112,17 +111,18 @@ public class SyntaxCache
 		{ SyntaxKind.AmpersandAmpersandToken, 4 },
 		
 		{ SyntaxKind.PipePipeToken, 3 },
+		{ SyntaxKind.QuestionMarkToken, 2 },
 		
 	}, LazyThreadSafetyMode.ExecutionAndPublication);
 
 	private readonly Lazy<Dictionary<SyntaxKind, string>> s_stringCache = new(() => new Dictionary<SyntaxKind, string>
 	{
-		{SyntaxKind.OpenParenToken, "("},
-		{SyntaxKind.CloseParenToken, ")"},
-		{SyntaxKind.OpenBraceToken, "{"},
-		{SyntaxKind.CloseBraceToken, "}"},
-		{SyntaxKind.OpenBracketToken, "["},
-		{SyntaxKind.CloseBracketToken, "]"},
+		{ SyntaxKind.OpenParenToken, "(" },
+		{ SyntaxKind.CloseParenToken, ")" },
+		{ SyntaxKind.OpenBraceToken, "{" },
+		{ SyntaxKind.CloseBraceToken, "}" },
+		{ SyntaxKind.OpenBracketToken, "[" },
+		{ SyntaxKind.CloseBracketToken, "]" },
 
 		{ SyntaxKind.TildeToken, "~"},
 		{ SyntaxKind.BangToken, "!"},

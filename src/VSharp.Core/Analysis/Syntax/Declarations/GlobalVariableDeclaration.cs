@@ -3,14 +3,14 @@
 [PublicAPI]
 public sealed class GlobalVariableDeclaration : MemberSyntax
 {
-	public GlobalVariableDeclaration(SyntaxToken<Bracket> openBracketToken,
-	                                 ModifierSyntaxList modifiers,
-	                                 SyntaxToken<Bracket> closeBracketToken,
-	                                 SyntaxToken<string> type,
-	                                 SyntaxToken<string> identifier,
-	                                 SyntaxToken<string>? equalsToken,
-	                                 ExpressionSyntax? initializer,
-	                                 SyntaxToken<Delimiter> semicolon)
+	public GlobalVariableDeclaration(in SyntaxToken<Bracket> openBracketToken,
+	                                 in ModifierSyntaxList modifiers,
+	                                 in SyntaxToken<Bracket> closeBracketToken,
+	                                 in SyntaxToken<string> type,
+	                                 in SyntaxToken<string> identifier,
+	                                 in SyntaxToken<string>? equalsToken,
+	                                 in ExpressionSyntax? initializer,
+	                                 in SyntaxToken<Delimiter> semicolon)
 	{
 		OpenBracketToken = openBracketToken;
 		Modifiers = modifiers;

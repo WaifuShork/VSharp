@@ -3,7 +3,7 @@
 [PublicAPI]
 public sealed class ExpressionStatementSyntax : StatementSyntax
 {
-	public ExpressionStatementSyntax(ExpressionSyntax expression)
+	public ExpressionStatementSyntax(in ExpressionSyntax expression)
 	{
 		Expression = expression;
 	}

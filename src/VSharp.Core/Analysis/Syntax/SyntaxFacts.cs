@@ -24,7 +24,7 @@
 [PublicAPI]
 public static class SyntaxFacts
 {
-	public static bool IsNumberLiteral(this SyntaxKind kind)
+	public static bool IsNumberLiteral(in this SyntaxKind kind)
 	{
 		return (SyntaxKind.Int8LiteralToken |
 		        SyntaxKind.UInt8LiteralToken |
@@ -35,10 +35,10 @@ public static class SyntaxFacts
 		        SyntaxKind.Int64LiteralToken |
 		        SyntaxKind.UInt64LiteralToken |
 		        SyntaxKind.Float32LiteralToken |
-		        SyntaxKind.Float64LiteralToken).HasFlag(kind);
+		        SyntaxKind.Float64LiteralToken).HasFlag(in kind);
 	}
 
-	public static bool IsPredefinedType(this SyntaxKind kind)
+	public static bool IsPredefinedType(in this SyntaxKind kind)
 	{
 		return (SyntaxKind.Int8Keyword |
 		        SyntaxKind.UInt8Keyword |
@@ -52,6 +52,6 @@ public static class SyntaxFacts
 		        SyntaxKind.Float64Keyword |
 		        SyntaxKind.StringKeyword |
 		        SyntaxKind.CharKeyword |
-		        SyntaxKind.ObjectKeyword).HasFlag(kind);
+		        SyntaxKind.ObjectKeyword).HasFlag(in kind);
 	}
 }

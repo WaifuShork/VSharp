@@ -3,10 +3,10 @@
 [PublicAPI]
 public sealed class GenericConstraintSyntax : SyntaxNode
 {
-	public GenericConstraintSyntax(SyntaxToken<Keyword> whereKeyword,
-	                                          SyntaxToken<Identifier> identifier,
-	                                          SyntaxToken<Any> colonToken,
-	                                          IReadOnlyList<ConstraintSyntax> constraints)
+	public GenericConstraintSyntax(in SyntaxToken<Keyword> whereKeyword,
+	                               in SyntaxToken<Identifier> identifier, 
+	                               in SyntaxToken<Any> colonToken,
+	                               in IReadOnlyList<ConstraintSyntax> constraints)
 	{
 		WhereKeyword = whereKeyword;
 		Identifier = identifier;

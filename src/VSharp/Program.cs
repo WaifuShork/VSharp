@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using System.Text;
-using System.Globalization;using System.Reflection;
-using System.Runtime.CLR;
+﻿using System.Text;
+using System.Globalization;
 using Color = System.Drawing.Color;
 
 using VSharp.Core.Extensions;
@@ -19,7 +17,7 @@ namespace VSharp;
 public static class VSharp
 {
     private static async Task<int> Main(string[] args)
-    {
+    { 
         if (args.Length == 0)
         {
             return await ExecuteReplAsync(args);

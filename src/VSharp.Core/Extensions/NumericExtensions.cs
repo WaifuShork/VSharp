@@ -31,7 +31,7 @@ public static class NumericExtensions
 	}
 
 	[PublicAPI]
-	public static bool IsWithinBounds<T>(this T index, string bounds)
+	public static bool IsWithinBounds<T>(this T index, in string bounds)
 		where T : INumber<T>, IComparisonOperators<T, T>
 	{
 		// it's pretty much impossible to negatively index,

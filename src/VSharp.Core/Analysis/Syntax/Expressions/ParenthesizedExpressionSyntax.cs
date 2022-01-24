@@ -3,7 +3,9 @@
 [PublicAPI]
 public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
 {
-	public ParenthesizedExpressionSyntax(SyntaxToken<string> openParenToken, ExpressionSyntax expression, SyntaxToken<string> closeParenToken)
+	public ParenthesizedExpressionSyntax(in SyntaxToken<string> openParenToken, 
+	                                     in ExpressionSyntax expression, 
+	                                     in SyntaxToken<string> closeParenToken)
 	{
 		OpenParenToken = openParenToken;
 		Expression = expression;

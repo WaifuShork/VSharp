@@ -3,13 +3,13 @@
 [PublicAPI]
 public sealed class ModuleDeclarationSyntax : MemberSyntax
 {
-	public ModuleDeclarationSyntax(SyntaxToken<Bracket> openBracketToken,
-	                               ModifierSyntaxList modifiers,
-	                               SyntaxToken<Bracket> closeBracketToken,
-	                               SyntaxToken<string> keyword, 
-	                               SyntaxToken<string> identifier,
-	                               SyntaxToken<string> semicolon,
-	                               IReadOnlyList<MemberSyntax> members)
+	public ModuleDeclarationSyntax(in SyntaxToken<Bracket> openBracketToken,
+	                               in ModifierSyntaxList modifiers,
+	                               in SyntaxToken<Bracket> closeBracketToken,
+	                               in SyntaxToken<string> keyword, 
+	                               in SyntaxToken<string> identifier,
+	                               in SyntaxToken<string> semicolon,
+	                               in IReadOnlyList<MemberSyntax> members)
 	{
 		OpenBracketToken = openBracketToken;
 		Modifiers = modifiers;

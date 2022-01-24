@@ -3,7 +3,7 @@
 [PublicAPI]
 public sealed class UInt8LiteralExpressionSyntax : ExpressionSyntax
 {
-	public UInt8LiteralExpressionSyntax(SyntaxToken<uint8> numberToken)
+	public UInt8LiteralExpressionSyntax(in SyntaxToken<uint8> numberToken)
 	{
 		NumberToken = numberToken;
 	}
@@ -20,7 +20,7 @@ public sealed class UInt8LiteralExpressionSyntax : ExpressionSyntax
 [PublicAPI]
 public sealed class Int8LiteralExpressionSyntax : ExpressionSyntax
 {
-	public Int8LiteralExpressionSyntax(SyntaxToken<int8> numberToken)
+	public Int8LiteralExpressionSyntax(in SyntaxToken<int8> numberToken)
 	{
 		NumberToken = numberToken;
 	}
@@ -37,7 +37,7 @@ public sealed class Int8LiteralExpressionSyntax : ExpressionSyntax
 [PublicAPI]
 public sealed class UInt16LiteralExpressionSyntax : ExpressionSyntax
 {
-	public UInt16LiteralExpressionSyntax(SyntaxToken<uint16> numberToken)
+	public UInt16LiteralExpressionSyntax(in SyntaxToken<uint16> numberToken)
 	{
 		NumberToken = numberToken;
 	}
@@ -54,7 +54,7 @@ public sealed class UInt16LiteralExpressionSyntax : ExpressionSyntax
 [PublicAPI]
 public sealed class Int16LiteralExpressionSyntax : ExpressionSyntax
 {
-	public Int16LiteralExpressionSyntax(SyntaxToken<int16> numberToken)
+	public Int16LiteralExpressionSyntax(in SyntaxToken<int16> numberToken)
 	{
 		NumberToken = numberToken;
 	}
@@ -71,7 +71,7 @@ public sealed class Int16LiteralExpressionSyntax : ExpressionSyntax
 [PublicAPI]
 public sealed class Int32LiteralExpressionSyntax : ExpressionSyntax
 {
-	public Int32LiteralExpressionSyntax(SyntaxToken<int32> numberToken)
+	public Int32LiteralExpressionSyntax(in SyntaxToken<int32> numberToken)
 	{
 		NumberToken = numberToken;
 	}
@@ -88,7 +88,7 @@ public sealed class Int32LiteralExpressionSyntax : ExpressionSyntax
 [PublicAPI]
 public sealed class UInt32LiteralExpressionSyntax : ExpressionSyntax
 {
-	public UInt32LiteralExpressionSyntax(SyntaxToken<uint32> numberToken)
+	public UInt32LiteralExpressionSyntax(in SyntaxToken<uint32> numberToken)
 	{
 		NumberToken = numberToken;
 	}
@@ -105,7 +105,7 @@ public sealed class UInt32LiteralExpressionSyntax : ExpressionSyntax
 [PublicAPI]
 public sealed class Int64LiteralExpressionSyntax : ExpressionSyntax
 {
-	public Int64LiteralExpressionSyntax(SyntaxToken<int64> numberToken)
+	public Int64LiteralExpressionSyntax(in SyntaxToken<int64> numberToken)
 	{
 		NumberToken = numberToken;
 	}
@@ -122,7 +122,7 @@ public sealed class Int64LiteralExpressionSyntax : ExpressionSyntax
 [PublicAPI]
 public sealed class UInt64LiteralExpressionSyntax : ExpressionSyntax
 {
-	public UInt64LiteralExpressionSyntax(SyntaxToken<uint64> numberToken)
+	public UInt64LiteralExpressionSyntax(in SyntaxToken<uint64> numberToken)
 	{
 		NumberToken = numberToken;
 	}
@@ -140,7 +140,7 @@ public sealed class UInt64LiteralExpressionSyntax : ExpressionSyntax
 [PublicAPI]
 public sealed class Float32LiteralExpressionSyntax : ExpressionSyntax
 {
-	public Float32LiteralExpressionSyntax(SyntaxToken<float32> numberToken)
+	public Float32LiteralExpressionSyntax(in SyntaxToken<float32> numberToken)
 	{
 		NumberToken = numberToken;
 	}
@@ -157,7 +157,7 @@ public sealed class Float32LiteralExpressionSyntax : ExpressionSyntax
 [PublicAPI]
 public sealed class Float64LiteralExpressionSyntax : ExpressionSyntax
 {
-	public Float64LiteralExpressionSyntax(SyntaxToken<float64> numberToken)
+	public Float64LiteralExpressionSyntax(in SyntaxToken<float64> numberToken)
 	{
 		NumberToken = numberToken;
 	}

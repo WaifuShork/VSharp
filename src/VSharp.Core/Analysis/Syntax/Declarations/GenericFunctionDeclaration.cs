@@ -3,22 +3,22 @@
 [PublicAPI]
 public sealed class GenericFunctionDeclaration : MemberSyntax
 {
-	public GenericFunctionDeclaration(SyntaxToken<Any> atToken,
-	                                  SyntaxToken<Keyword> genericKeyword,
-	                                  SyntaxToken<Bracket> lessToken,
-	                                  SyntaxToken<Any> genericType,
-	                                  SyntaxToken<Bracket> greaterToken,
-	                                  GenericConstraintSyntax? constraint,
-	                                  SyntaxToken<Bracket> openBracketToken,
-	                                  ModifierSyntaxList modifiers,
-	                                  SyntaxToken<Bracket> closeBracketToken,
-	                                  SyntaxToken<Identifier> identifier,
-	                                  SyntaxToken<Bracket> openParenToken,
-	                                  ParameterSyntaxList parameters,
-	                                  SyntaxToken<Bracket> closeParenToken,	                                  
-	                                  SyntaxToken<Any> arrowToken,
-	                                  SyntaxToken<Any> returnType,
-	                                  BlockStatementSyntax block)
+	public GenericFunctionDeclaration(in SyntaxToken<Any> atToken,
+	                                  in SyntaxToken<Keyword> genericKeyword,
+	                                  in SyntaxToken<Bracket> lessToken,
+	                                  in SyntaxToken<Any> genericType,
+	                                  in SyntaxToken<Bracket> greaterToken,
+	                                  in GenericConstraintSyntax? constraint,
+	                                  in SyntaxToken<Bracket> openBracketToken,
+	                                  in ModifierSyntaxList modifiers,
+	                                  in SyntaxToken<Bracket> closeBracketToken,
+	                                  in SyntaxToken<Identifier> identifier,
+	                                  in SyntaxToken<Bracket> openParenToken,
+	                                  in ParameterSyntaxList parameters,
+	                                  in SyntaxToken<Bracket> closeParenToken,	                                  
+	                                  in SyntaxToken<Any> arrowToken,
+	                                  in SyntaxToken<Any> returnType,
+	                                  in BlockStatementSyntax block)
 	{
 		AtToken = atToken;
 		GenericKeyword = genericKeyword;

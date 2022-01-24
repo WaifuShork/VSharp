@@ -5,7 +5,7 @@ namespace VSharp.Core.Analysis.Lexing;
 public partial class Lexer
 {
 	// TODO: everything with numbers, this is a lazy implementation for now
-	private ISyntaxToken ScanNumericLiteral(IReadOnlyList<SyntaxTrivia> leading)
+	private ISyntaxToken ScanNumericLiteral(in IReadOnlyList<SyntaxTrivia> leading)
 	{
 		m_start = m_position;
 		var numberLength = 0;

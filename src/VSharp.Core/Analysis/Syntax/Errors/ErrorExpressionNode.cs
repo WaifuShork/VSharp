@@ -3,7 +3,7 @@
 [PublicAPI]
 public sealed class ErrorExpressionNode : ExpressionSyntax
 {
-	public ErrorExpressionNode(DiagnosticInfo diagnostic)
+	public ErrorExpressionNode(in DiagnosticInfo diagnostic)
 	{
 		Diagnostic = diagnostic;
 	}

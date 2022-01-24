@@ -3,7 +3,7 @@
 [PublicAPI]
 public sealed class TypeConstraintSyntax : ConstraintSyntax
 {
-	public TypeConstraintSyntax(SyntaxToken<Identifier> identifier)
+	public TypeConstraintSyntax(in SyntaxToken<Identifier> identifier)
 	{
 		Identifier = identifier;
 	}

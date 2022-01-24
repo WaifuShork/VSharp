@@ -3,12 +3,12 @@
 [PublicAPI]
 public sealed class EnumDeclarationSyntax : MemberSyntax
 {
-	public EnumDeclarationSyntax(SyntaxToken<Bracket> openBracketToken,
-	                             ModifierSyntaxList modifiers,
-	                             SyntaxToken<Bracket> closeBracketToken,
-	                             SyntaxToken<Keyword> keyword,
-	                             SyntaxToken<Identifier> identifier,
-	                             EnumBlockStatementSyntax block)
+	public EnumDeclarationSyntax(in SyntaxToken<Bracket> openBracketToken,
+	                             in ModifierSyntaxList modifiers,
+	                             in SyntaxToken<Bracket> closeBracketToken,
+	                             in SyntaxToken<Keyword> keyword,
+	                             in SyntaxToken<Identifier> identifier,
+	                             in EnumBlockStatementSyntax block)
 	{
 		OpenBracketToken = openBracketToken;
 		Modifiers = modifiers;

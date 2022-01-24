@@ -3,7 +3,8 @@
 [PublicAPI]
 public sealed class ParameterSyntax : SyntaxNode
 {
-	public ParameterSyntax(SyntaxToken<string> type, SyntaxToken<string> identifier)
+	public ParameterSyntax(in SyntaxToken<string> type, 
+	                       in SyntaxToken<string> identifier)
 	{
 		Type = type;
 		Identifier = identifier;

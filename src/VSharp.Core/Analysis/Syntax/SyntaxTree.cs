@@ -13,9 +13,9 @@ public sealed class SyntaxTree
 		EndOfFileToken = endOfFileToken;
 	}*/
 
-	private SyntaxTree(SourceText text)
+	private SyntaxTree(in SourceText text)
 	{
-		var parser = new Parser(text);
+		var parser = new Parser(in text);
 		var root = parser.ParseCompilationUnit();
 		var diagnostics = parser.Diagnostics;
 
@@ -30,16 +30,17 @@ public sealed class SyntaxTree
 	public CompilationUnitSyntax Root { get; }
 	// public ISyntaxToken EndOfFileToken { get; }
 
-	public static SyntaxTree Parse(SourceText text)
+	public static SyntaxTree Parse(in SourceText text)
 	{
-		return new SyntaxTree(text);
+		return new SyntaxTree(in text);
 		// var parser = new Parser(text);
 		// return parser.Parse();
 	}
 
-	public static IReadOnlyList<ISyntaxToken> ParseTokens(string text, out IReadOnlyList<DiagnosticInfo> diagnostics)
+	public static IReadOnlyList<ISyntaxToken> ParseTokens(in string text, out IReadOnlyList<DiagnosticInfo> diagnostics)
 	{
-		var tokens = Lexer.ScanSyntaxTokens(SourceText.From(text), out diagnostics);
+		var source = SourceText.From(text);
+		var tokens = Lexer.ScanSyntaxTokens(in source, out diagnostics);
 		/*foreach (var token in tokens)
 		{
 			Console.WriteLine(token.ToString(Formatting.Expanded));
@@ -48,67 +49,9 @@ public sealed class SyntaxTree
 		return tokens;
 	}
 	
-	public static IReadOnlyList<ISyntaxToken> ParseTokens(string text)
+	public static IReadOnlyList<ISyntaxToken> ParseTokens(in string text)
 	{
-		var tokens = Lexer.ScanSyntaxTokens(SourceText.From(text), out _);
+		var tokens = Lexer.ScanSyntaxTokens(SourceText.From(in text), out _);
 		return tokens;
 	}
-
-	/*public static void PrettyPrint(SyntaxNode node, string indent = "", bool isLast = true)
-	{
-		// └──
-		var marker = isLast 
-			? @"\──".ColorizeForeground(Color.Coral) 
-			: "├──".ColorizeForeground(Color.Coral);
-		
-		Console.Write(indent);
-		Console.Write(marker);
-		Console.Write(node.Kind.ToString().ColorizeForeground(Color.Magenta));
-		PrintValue(node);
-		
-		Console.WriteLine();
-		
-		indent += isLast ? "    " : "│   ".ColorizeForeground(Color.Coral);
-
-		var lastChild = node.GetChildren().LastOrDefault();
-
-		foreach (var child in node.GetChildren())
-		{
-			PrettyPrint(child, indent, child == lastChild);
-		}
-	}
-
-	private static void PrintValue(SyntaxNode node)
-	{
-		switch (node)
-		{
-			case SyntaxToken<bool> b:
-				Console.Write($": {b.Value}");
-				break;
-			case SyntaxToken<double> d:
-				Console.Write($": {d.Value}");
-				break;
-			case SyntaxToken<string> s:
-				Console.Write($": {s.Value}");
-				break;
-			case VariableDeclarationSyntax v:
-			{
-				var mut = v.IsMutable ? "Mutable" : "Immutable";
-				Console.Write($": [State: {mut}]");
-				break;
-			}
-			case GlobalVariableDeclaration g:
-			{
-				var mut = g.IsMutable ? "Mutable" : "Immutable";
-				Console.Write($": [State: {mut}]");
-				break;
-			}
-			case FunctionDeclarationSyntax f:
-			{
-				var mut = f.IsMutable ? "Mutable" : "Immutable";
-				Console.Write($": [State: {mut}]");
-				break;
-			}
-		}
-	}*/
 }

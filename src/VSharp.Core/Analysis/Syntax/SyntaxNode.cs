@@ -103,7 +103,7 @@ public abstract class SyntaxNode
 				await Console.Out.WriteAsync($": {s.Value}");
 				break;
 			case VariableDeclarationSyntax v:
-				var mut = v.IsMutable ? "Mutable" : "Immutable";
+				var mut = v.MutabilityKeyword is null ? "Mutable" : "Immutable";
 				await Console.Out.WriteAsync($": [State: {mut}]");
 				break;
 		}

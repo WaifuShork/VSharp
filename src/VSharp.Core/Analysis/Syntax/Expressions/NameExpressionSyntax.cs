@@ -3,7 +3,7 @@
 [PublicAPI]
 public sealed class NameExpressionSyntax : ExpressionSyntax
 {
-	public NameExpressionSyntax(SyntaxToken<string> identifierToken)
+	public NameExpressionSyntax(in SyntaxToken<string> identifierToken)
 	{
 		IdentifierToken = identifierToken;
 	}

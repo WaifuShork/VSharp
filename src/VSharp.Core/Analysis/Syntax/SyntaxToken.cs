@@ -25,7 +25,7 @@ public interface ISyntaxToken
 	public int Line { get; }
 	IReadOnlyList<SyntaxTrivia> TrailingTrivia { get; }
 	public TextLocation Location { get; }
-	public string ToString(Formatting formatting);
+	public string ToString(in Formatting formatting);
 }
 
 [PublicAPI]
@@ -33,14 +33,14 @@ public interface ISyntaxToken
 public class SyntaxToken<T> : SyntaxNode, ISyntaxToken
 {
 	public SyntaxToken(
-		IReadOnlyList<SyntaxTrivia> leadingTrivia, 
-		SyntaxKind kind, 
-		string text, 
-		T? value, 
-		int position,
-		int line, 
-		IReadOnlyList<SyntaxTrivia> trailingTrivia,
-		DiagnosticInfo? diagnostic = null)
+		in IReadOnlyList<SyntaxTrivia> leadingTrivia, 
+		in SyntaxKind kind, 
+		in string text, 
+		in T? value, 
+		in int position,
+		in int line, 
+		in IReadOnlyList<SyntaxTrivia> trailingTrivia,
+		in DiagnosticInfo? diagnostic = null)
 	{
 		LeadingTrivia = leadingTrivia;
 
@@ -77,7 +77,7 @@ public class SyntaxToken<T> : SyntaxNode, ISyntaxToken
 		return ToString(Formatting.Expanded);
 	}
 
-	public string ToString(Formatting formatting)
+	public string ToString(in Formatting formatting)
 	{
 		string temp;
 		var leading = string.IsNullOrWhiteSpace(temp = FormatTrivia(LeadingTrivia)) ? $"{CharacterInfo.Tab}{CharacterInfo.Tab}None" : temp; 
@@ -128,7 +128,7 @@ public class SyntaxToken<T> : SyntaxNode, ISyntaxToken
 		};
 	}
 
-	private static string FormatTrivia(IReadOnlyList<SyntaxTrivia> trivias)
+	private static string FormatTrivia(in IReadOnlyList<SyntaxTrivia> trivias)
 	{
 		var sb = new StringBuilder();
 		foreach (var trivia in trivias)
@@ -153,25 +153,25 @@ public class SyntaxToken<T> : SyntaxNode, ISyntaxToken
 		return Default;
 	}
 
-	public static SyntaxToken<string> EndOfFile(int position, int line, IReadOnlyList<SyntaxTrivia> leading, DiagnosticInfo? diagnostic = null)
+	public static SyntaxToken<string> EndOfFile(in int position, in int line, in IReadOnlyList<SyntaxTrivia> leading, in DiagnosticInfo? diagnostic = null)
 	{
 		// it's pretty much impossible to have trailing trivia on the EOF
-		return new(leading, SyntaxKind.EndOfFileToken, "EOF", "EOF", position, line, Array.Empty<SyntaxTrivia>(), diagnostic);
+		return new(in leading, in SyntaxKind.EndOfFileToken, "EOF", "EOF", in position, in line, Array.Empty<SyntaxTrivia>(), in diagnostic);
 	}
 
-	public static SyntaxToken<string> Illegal(int position, int line, IReadOnlyList<SyntaxTrivia> leading, DiagnosticInfo? diagnostic = null)
+	public static SyntaxToken<string> Illegal(in int position, in int line, in IReadOnlyList<SyntaxTrivia> leading, in DiagnosticInfo? diagnostic = null)
 	{
-		return new(leading, SyntaxKind.BadToken, "ERROR", "ERROR", position, line, Array.Empty<SyntaxTrivia>(), diagnostic);
+		return new(in leading, in SyntaxKind.BadToken, "ERROR", "ERROR", in position, in line, Array.Empty<SyntaxTrivia>(), in diagnostic);
 	}
 
-	public static bool operator ==(SyntaxToken<T> left, SyntaxToken<T> right)
+	public static bool operator ==(in SyntaxToken<T> left, in SyntaxToken<T> right)
 	{
-		return left.Equals(right);
+		return left.Equals(in right);
 	}
 	
-	public static bool operator !=(SyntaxToken<T> left, SyntaxToken<T> right)
+	public static bool operator !=(in SyntaxToken<T> left, in SyntaxToken<T> right)
 	{
-		return !left.Equals(right);
+		return !left.Equals(in right);
 	}
 
 	public override int GetHashCode()
@@ -185,7 +185,7 @@ public class SyntaxToken<T> : SyntaxNode, ISyntaxToken
 		return hash;
 	}
 	
-	public bool Equals(SyntaxToken<T> other)
+	public bool Equals(in SyntaxToken<T> other)
 	{
 		// incredibly overkill but who cares?
 		return Kind == other.Kind 
@@ -216,7 +216,7 @@ public class SyntaxToken<T> : SyntaxNode, ISyntaxToken
 			return false;
 		}
 		
-		return Equals(st);
+		return Equals(in st);
 	}
 }
 

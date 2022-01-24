@@ -26,13 +26,11 @@ public struct SyntaxKind : IEquatable<SyntaxKind>, IComparable<SyntaxKind>, ICom
 		{
 			return 0;
 		}
+		
 		var idx = c_zeroInit ? index - 1 : index;
 		return new BigInteger(1) << idx;
 	}
 
-	/// <summary>
-	/// Static constructor. Sets the static public fields.
-	/// </summary>
 	static SyntaxKind()
 	{
 		s_fields = typeof(SyntaxKind).GetFields(BindingFlags.Public | BindingFlags.Static).ToList();
@@ -205,7 +203,7 @@ public struct SyntaxKind : IEquatable<SyntaxKind>, IComparable<SyntaxKind>, ICom
 	/// </summary>
 	/// <param name="flags"></param>
 	/// <returns></returns>
-	public bool HasFlag( SyntaxKind flags )
+	public bool HasFlag(in SyntaxKind flags)
 	{
 		return (this & flags) == flags;
 	}
@@ -370,7 +368,6 @@ public struct SyntaxKind : IEquatable<SyntaxKind>, IComparable<SyntaxKind>, ICom
 	public static SyntaxKind AllBrackets => OpenParenToken | CloseParenToken 
 	                                      | OpenBraceToken | CloseBraceToken 
 	                                      | OpenBracketToken | CloseBracketToken;
-	
 	
 	
 	public static readonly SyntaxKind DotToken;

@@ -3,7 +3,9 @@
 [PublicAPI]
 public sealed class BlockStatementSyntax : StatementSyntax
 {
-	public BlockStatementSyntax(SyntaxToken<string> openBraceToken, IReadOnlyList<StatementSyntax> statements, SyntaxToken<string> closeBraceToken)
+	public BlockStatementSyntax(in SyntaxToken<string> openBraceToken, 
+	                            in IReadOnlyList<StatementSyntax> statements, 
+	                            in SyntaxToken<string> closeBraceToken)
 	{
 		OpenBraceToken = openBraceToken;
 		Statements = statements;
@@ -30,7 +32,9 @@ public sealed class BlockStatementSyntax : StatementSyntax
 [PublicAPI]
 public sealed class EnumBlockStatementSyntax : StatementSyntax
 {
-	public EnumBlockStatementSyntax(SyntaxToken<string> openBraceToken, IReadOnlyList<EnumFieldDeclarationSyntax> fields, SyntaxToken<string> closeBraceToken)
+	public EnumBlockStatementSyntax(in SyntaxToken<string> openBraceToken, 
+	                                in IReadOnlyList<EnumFieldDeclarationSyntax> fields, 
+	                                in SyntaxToken<string> closeBraceToken)
 	{
 		OpenBraceToken = openBraceToken;
 		Fields = fields;

@@ -6,7 +6,7 @@ using System.Collections;
 [PublicAPI]
 public sealed class SourceText : IComparable, ICloneable, IConvertible, IComparable<SourceText>, IEnumerable<char>, IEquatable<SourceText>
 {
-    private SourceText(string text, string fileName = "null")
+    private SourceText(in string text, in string fileName = "null")
     {
         Text = text;
         Length = text.Length;
@@ -48,21 +48,21 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
                 throw new IndexOutOfRangeException(nameof(range));
             }
 
-            return From(From(range));
+            return From(From(in range));
         }
     }
 
-    public char At(int index)
+    public char At(in int index)
     {
-        return Text.At(index);
+        return Text.At(in index);
     }
 
-    public string From(Range range)
+    public string From(in Range range)
     {
-        return Text.From(range);
+        return Text.From(in range);
     }
 
-    public void Increment(int amount = 1)
+    public void Increment(in int amount = 1)
     {
         var index = Position + amount;
         if (index.IsWithinBounds(Text))
@@ -71,29 +71,29 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
         }
     }
 
-    public static bool operator ==(SourceText left, SourceText right)
+    public static bool operator ==(in SourceText left, in SourceText right)
     {
         return left.Equals(right);
     }
     
-    public static bool operator !=(SourceText left, SourceText right)
+    public static bool operator !=(in SourceText left, in SourceText right)
     {
         return !(left == right);
     }
     
-    public static SourceText operator ++(SourceText text)
+    public static SourceText operator ++(in SourceText text)
     {
         text.Increment();
         return text;
     }
 
-    public static SourceText operator --(SourceText text)
+    public static SourceText operator --(in SourceText text)
     {
         text.Decrement();
         return text;
     }
     
-    public void Decrement(int amount = 1)
+    public void Decrement(in int amount = 1)
     {
         var index = Position - amount;
         if (index.IsWithinBounds(Text))
@@ -115,7 +115,7 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
         };
     }
     
-    private static IReadOnlyList<TextLine> ParseLines(in SourceText sourceText, string text)
+    private static IReadOnlyList<TextLine> ParseLines(in SourceText sourceText, in string text)
     {
         var result = new List<TextLine>();
 
@@ -124,14 +124,14 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
 
         while (position < text.Length)
         {
-            var lineBreakWidth = GetLineBreakWidth(text, position);
+            var lineBreakWidth = GetLineBreakWidth(in text, in position);
             if (lineBreakWidth == 0)
             {
                 position++;
             }
             else
             {
-                AddLine(result, sourceText, position, lineStart, lineBreakWidth);
+                AddLine(result, in sourceText, in position, in lineStart, in lineBreakWidth);
                 position += lineBreakWidth;
                 lineStart = position;
             }
@@ -145,7 +145,7 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
         return result;
     }
 
-    private static void AddLine(ICollection<TextLine> result, SourceText sourceText, int position, int lineStart, int lineBreakWidth)
+    private static void AddLine(ICollection<TextLine> result, in SourceText sourceText, in int position, in int lineStart, in int lineBreakWidth)
     {
         var lineLength = position - lineStart;
         var lineLengthIncludingLineBreak = lineLength + lineBreakWidth;
@@ -153,7 +153,7 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
         result.Add(line);
     }
     
-    private static int GetLineBreakWidth(in string text, int position)
+    private static int GetLineBreakWidth(in string text, in int position)
     {
         var c = text[position];
         var l = position + 1 >= text.Length ? '\0' : text[position + 1];
@@ -171,7 +171,7 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
         return 0;
     }
     
-    public int GetLineIndex(int position)
+    public int GetLineIndex(in int position)
     {
         var lower = 0;
         var upper = Lines.Count - 1;
@@ -199,9 +199,9 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
         return lower - 1;
     }
     
-    public static SourceText From(string text, string fileName = "src/script.vs")
+    public static SourceText From(in string text, in string fileName = "src/script.vs")
     {
-        return new SourceText(text, fileName);
+        return new SourceText(in text, in fileName);
     }
 
     public string Substring(TextSpan span)
@@ -214,12 +214,12 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
         return Substring(span.Start, span.Length);
     }
     
-    public string Substring(int startIndex, int length)
+    public string Substring(in int startIndex, in int length)
     {
         return Text.Substring(startIndex, length);
     }
 
-    public string ToString(TextSpan span)
+    public string ToString(in TextSpan span)
     {
         return Substring(span.Start, span.Length);
     }

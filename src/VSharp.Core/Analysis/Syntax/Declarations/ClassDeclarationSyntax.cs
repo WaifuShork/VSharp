@@ -3,12 +3,12 @@
 [PublicAPI]
 public sealed class ClassDeclarationSyntax : MemberSyntax
 {
-	public ClassDeclarationSyntax(SyntaxToken<Bracket> openBracketToken,
-								  ModifierSyntaxList modifiers,
-								  SyntaxToken<Bracket> closeBracketToken,
-	                              SyntaxToken<Keyword> keyword,
-	                              SyntaxToken<Identifier> identifier,
-	                              BlockStatementSyntax block)
+	public ClassDeclarationSyntax(in SyntaxToken<Bracket> openBracketToken,
+	                              in ModifierSyntaxList modifiers,
+	                              in SyntaxToken<Bracket> closeBracketToken,
+	                              in SyntaxToken<Keyword> keyword,
+	                              in SyntaxToken<Identifier> identifier,
+	                              in BlockStatementSyntax block)
 	{
 		OpenBracketToken = openBracketToken;
 		Modifiers = modifiers;

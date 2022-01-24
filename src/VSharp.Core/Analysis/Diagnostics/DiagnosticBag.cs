@@ -7,7 +7,7 @@ using System.Collections;
 public sealed class DiagnosticBag : IEnumerable<DiagnosticInfo>
 {
 	private readonly DiagnosticFactory m_factory = new();
-	public Lazy<IEnumerable<DiagnosticInfo>> Cache => new(() => m_factory.All, LazyThreadSafetyMode.ExecutionAndPublication);
+	public Lazy<IReadOnlyList<DiagnosticInfo>> Cache => new(() => m_factory.All.ToList(), LazyThreadSafetyMode.ExecutionAndPublication);
 
 	public void AddRange(IReadOnlyList<DiagnosticInfo> diagnostics)
 	{

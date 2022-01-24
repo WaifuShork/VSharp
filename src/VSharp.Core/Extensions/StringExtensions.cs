@@ -20,7 +20,7 @@ public static class StringExtensions
 		}
 	}
 	
-	public static char At(this string? str, int index)
+	public static char At(this string? str, in int index)
 	{
 		if (string.IsNullOrWhiteSpace(str) || !index.IsWithinBounds(str))
 		{
@@ -30,7 +30,7 @@ public static class StringExtensions
 		return str[index];
 	}
 
-	public static string From(this string? str, Range range)
+	public static string From(this string? str, in Range range)
 	{
 		if (string.IsNullOrWhiteSpace(str) || !range.Start.Value.IsWithinBounds(str) && !range.Start.Value.IsWithinBounds(str))
 		{

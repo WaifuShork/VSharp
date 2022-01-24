@@ -3,7 +3,7 @@
 using WaifuShork.Common;
 using System.Diagnostics.CodeAnalysis;
 
-public readonly record struct SyntaxTrivia(SyntaxKind Kind, int Position, string Text)
+public readonly record struct SyntaxTrivia(in SyntaxKind Kind, in int Position, in string Text)
 {
 	public TextSpan Span => new(Position, Text?.Length ?? 0);
 

@@ -3,7 +3,7 @@
 [PublicAPI]
 public sealed class ErrorStatementNode : StatementSyntax
 {
-	public ErrorStatementNode(DiagnosticInfo diagnostic)
+	public ErrorStatementNode(in DiagnosticInfo diagnostic)
 	{
 		Diagnostic = diagnostic;
 	}

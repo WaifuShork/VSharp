@@ -7,7 +7,7 @@ using Microsoft.Toolkit.Diagnostics;
 
 public partial class Lexer
 {
-	private ISyntaxToken ScanStringLiteral(char quoteChar, IReadOnlyList<SyntaxTrivia> leadingTrivia)
+	private ISyntaxToken ScanStringLiteral(char quoteChar, in IReadOnlyList<SyntaxTrivia> leadingTrivia)
 	{
 		quoteChar.Should().Be('"', "quote character was not \"");
 		
@@ -49,7 +49,7 @@ public partial class Lexer
 		return CreateToken(leadingTrivia, SyntaxKind.StringLiteralToken, text, text, trailing);
 	}
 
-	private ISyntaxToken ScanCharLiteral(char quoteChar, IReadOnlyList<SyntaxTrivia> leadingTrivia)
+	private ISyntaxToken ScanCharLiteral(char quoteChar, in IReadOnlyList<SyntaxTrivia> leadingTrivia)
 	{
 		quoteChar.Should().Be('\'', "quote character was not '");
 		m_start = m_position;

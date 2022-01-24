@@ -3,7 +3,8 @@
 [PublicAPI]
 public class CompilationUnitSyntax : SyntaxNode
 {
-	public CompilationUnitSyntax(ModuleDeclarationSyntax module, SyntaxToken<Delimiter> endOfFileToken)
+	public CompilationUnitSyntax(in ModuleDeclarationSyntax module, 
+	                             in SyntaxToken<Delimiter> endOfFileToken)
 	{
 		Module = module;
 		EndOfFileToken = endOfFileToken;
