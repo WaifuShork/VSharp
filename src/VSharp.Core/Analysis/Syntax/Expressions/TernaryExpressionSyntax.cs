@@ -2,11 +2,11 @@
 
 public sealed class TernaryExpressionSyntax : ExpressionSyntax
 {
-	public TernaryExpressionSyntax(in ExpressionSyntax condition,
-	                               in SyntaxToken<Any> questionMarkToken,
-	                               in ExpressionSyntax consequent, 
-	                               in SyntaxToken<Any> colonToken,
-	                               in ExpressionSyntax alternative)
+	public TernaryExpressionSyntax(ExpressionSyntax condition,
+	                               SyntaxToken<Any> questionMarkToken,
+	                               ExpressionSyntax consequent, 
+	                               SyntaxToken<Any> colonToken,
+	                               ExpressionSyntax alternative)
 	{
 		Condition = condition;
 		QuestionMarkToken = questionMarkToken;

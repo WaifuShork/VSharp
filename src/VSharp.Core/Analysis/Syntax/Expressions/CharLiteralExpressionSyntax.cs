@@ -3,7 +3,7 @@
 [PublicAPI]
 public sealed class CharLiteralExpressionSyntax : ExpressionSyntax
 {
-	public CharLiteralExpressionSyntax(in SyntaxToken<char> charToken)
+	public CharLiteralExpressionSyntax(SyntaxToken<char> charToken)
 	{
 		CharToken = charToken;
 	}

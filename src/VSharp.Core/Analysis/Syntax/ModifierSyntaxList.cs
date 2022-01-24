@@ -5,7 +5,7 @@ namespace VSharp.Core.Analysis.Syntax;
 [PublicAPI]
 public sealed class ModifierSyntaxList : SyntaxNode, IEnumerable<SyntaxToken<Identifier>>
 {
-	public ModifierSyntaxList(in IReadOnlyList<SyntaxToken<Modifier>> modifiers)
+	public ModifierSyntaxList(IReadOnlyList<SyntaxToken<Modifier>> modifiers)
 	{
 		Modifiers = modifiers;
 	}

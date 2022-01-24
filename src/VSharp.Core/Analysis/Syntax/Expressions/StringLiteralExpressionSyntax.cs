@@ -3,7 +3,7 @@
 [PublicAPI]
 public sealed class StringLiteralExpressionSyntax : ExpressionSyntax
 {
-	public StringLiteralExpressionSyntax(in SyntaxToken<string> str)
+	public StringLiteralExpressionSyntax(SyntaxToken<string> str)
 	{
 		StringToken = str;
 	}

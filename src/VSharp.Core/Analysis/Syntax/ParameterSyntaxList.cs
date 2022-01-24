@@ -5,7 +5,7 @@ namespace VSharp.Core.Analysis.Syntax;
 [PublicAPI]
 public sealed class ParameterSyntaxList : SyntaxNode, IEnumerable<ParameterSyntax>
 {
-	public ParameterSyntaxList(in IReadOnlyList<ParameterSyntax> parameters)
+	public ParameterSyntaxList(IReadOnlyList<ParameterSyntax> parameters)
 	{
 		Parameters = parameters;
 	}

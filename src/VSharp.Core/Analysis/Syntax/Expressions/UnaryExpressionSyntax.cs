@@ -3,8 +3,8 @@
 [PublicAPI]
 public sealed class UnaryExpressionSyntax : ExpressionSyntax
 {
-	public UnaryExpressionSyntax(in SyntaxToken<string> operatorToken, 
-	                             in ExpressionSyntax operand)
+	public UnaryExpressionSyntax(SyntaxToken<string> operatorToken, 
+	                             ExpressionSyntax operand)
 	{
 		Operator = operatorToken;
 		Operand = operand;

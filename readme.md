@@ -2,14 +2,15 @@
 <html lang="en">
 <div style="text-align:center">
     <p>
-        <img src="media/logo.png" alt="V# Logo" width="166" height="204.8" /><br>
+        <img src="media/logo%20(2).png" alt="V# Logo" width="150" height="150" /><br> 
     </p>
-    <h1>The V# Compiler</h1> 
         <p>
             V# is an open source, object-oriented, type-safe, and elegant programming language. My design goal is to create a language that encapsulates simplicity, speed, and safety.
             The syntax is derived from a combination of C#, Golang, and more C-style languages.
         </p>
-    <h1>But Why?</h1>
+
+![Alt](https://repobeats.axiom.co/api/embed/6d8f47f3967c094a9ef2983c16f27733a996d835.svg "Repobeats Analytics Image")
+        <h1>But Why?</h1>
         <p>
             All languages are great in their own respect, but the biggest part of a language for me doesn't come from actual
             language features, it's the Standard Library and Runtime/VM that the language uses. The reason I've decided to name

@@ -34,7 +34,7 @@ public sealed class Parser
 	{
 		var module = ParseModuleDeclaration();
 		var eofToken = Match<Delimiter>(in SyntaxKind.EndOfFileToken);
-		return new CompilationUnitSyntax(in module, in eofToken);
+		return new CompilationUnitSyntax(module, eofToken);
 	}
 
 	private ModuleDeclarationSyntax ParseModuleDeclaration()
@@ -44,13 +44,13 @@ public sealed class Parser
 		var identifier = Match<Identifier>(in SyntaxKind.IdentifierToken);
 		var semicolon = Match<Delimiter>(in SyntaxKind.SemicolonToken);
 		var members = ParseMembers();
-		return new ModuleDeclarationSyntax(in openBracket, 
-		                                   in modifiers, 
-		                                   in closeBracket, 
-		                                   in keyword, 
-		                                   in identifier, 
-		                                   in semicolon, 
-		                                   in members);
+		return new ModuleDeclarationSyntax(openBracket, 
+		                                   modifiers, 
+		                                   closeBracket, 
+		                                   keyword, 
+		                                   identifier, 
+		                                   semicolon, 
+		                                   members);
 	}
 
 	private IReadOnlyList<MemberSyntax> ParseMembers()
@@ -137,15 +137,17 @@ public sealed class Parser
 		var fromKeyword = Match<Keyword>(in SyntaxKind.FromKeyword);
 		moduleIdentifier = Match<Identifier>(in SyntaxKind.IdentifierToken);
 		_ = Match<Any>(in SyntaxKind.SemicolonToken);
+
+		var immutableIdentifiers = identifiers as IReadOnlyList<SyntaxToken<Any>>;
 		
-		return new ImportDirectiveSyntax(in useKeyword, 
-		                                 in openBracketToken, 
-		                                 identifiers, 
-		                                 in closeBracketToken, 
-		                                 in fromKeyword,
-		                                 in moduleIdentifier);
+		return new ImportDirectiveSyntax(useKeyword, 
+		                                 openBracketToken, 
+		                                 immutableIdentifiers, 
+		                                 closeBracketToken, 
+		                                 fromKeyword,
+		                                 moduleIdentifier);
 	}
-	
+
 	private ClassDeclarationSyntax ParseClassDeclaration(in SyntaxToken<Bracket> openBracket,
 	                                                     in ModifierSyntaxList modifiers, 
 	                                                     in SyntaxToken<Bracket> closeBracket)
@@ -153,7 +155,7 @@ public sealed class Parser
 		var keyword = Match<Keyword>(in SyntaxKind.ClassKeyword);
 		var identifier = Match<Identifier>(in SyntaxKind.IdentifierToken);
 		var block = ParseBlockStatement();
-		return new ClassDeclarationSyntax(in openBracket, in modifiers, in closeBracket, in keyword, in identifier, in block);
+		return new ClassDeclarationSyntax(openBracket, modifiers, closeBracket, keyword, identifier, block);
 	}
 	
 	private StructDeclarationSyntax ParseStructDeclaration(in SyntaxToken<Bracket> openBracket,
@@ -163,7 +165,7 @@ public sealed class Parser
 		var keyword = Match<Keyword>(in SyntaxKind.StructKeyword);
 		var identifier = Match<Identifier>(in SyntaxKind.IdentifierToken);
 		var block = ParseBlockStatement();
-		return new StructDeclarationSyntax(in openBracket, in modifiers, in closeBracket, in keyword, in identifier, in block);
+		return new StructDeclarationSyntax(openBracket, modifiers, closeBracket, keyword, identifier, block);
 	}
 
 	private EnumDeclarationSyntax ParseEnumDeclaration(in SyntaxToken<Bracket> openBracket,
@@ -173,7 +175,7 @@ public sealed class Parser
 		var keyword = Match<Keyword>(in SyntaxKind.EnumKeyword);
 		var identifier = Match<Identifier>(in SyntaxKind.IdentifierToken);
 		var block = ParseEnumBlockStatement();
-		return new EnumDeclarationSyntax(in openBracket, in modifiers, in closeBracket, in keyword, in identifier, in block);
+		return new EnumDeclarationSyntax(openBracket, modifiers, closeBracket, keyword, identifier, block);
 	}
 
 	private EnumBlockStatementSyntax ParseEnumBlockStatement()
@@ -193,7 +195,7 @@ public sealed class Parser
 		}
 
 		var closeBraceToken = Match<Any>(in SyntaxKind.CloseBraceToken);
-		return new EnumBlockStatementSyntax(in openBraceToken, fields, in closeBraceToken);
+		return new EnumBlockStatementSyntax(openBraceToken, fields, closeBraceToken);
 	}
 	
 	private FunctionDeclarationSyntax ParseFunctionDeclaration(
@@ -210,16 +212,16 @@ public sealed class Parser
 		var returnType = Match<Any>(SyntaxKind.AllPredefinedOrUserTypes);
 
 		var block = ParseBlockStatement();
-		return new FunctionDeclarationSyntax(in openBracket,
-		                                     in modifiers, 
-		                                     in closeBracket,
-		                                     in identifier,
-		                                     in openParen,
-		                                     in parameters,
-		                                     in closeParen,
-		                                     in arrowToken,
-		                                     in returnType,
-		                                     in block);
+		return new FunctionDeclarationSyntax(openBracket,
+		                                     modifiers, 
+		                                     closeBracket,
+		                                     identifier,
+		                                     openParen,
+		                                     parameters,
+		                                     closeParen,
+		                                     arrowToken,
+		                                     returnType,
+		                                     block);
 	}
 
 	private GenericFunctionDeclaration ParseGenericFunctionDeclaration(in SyntaxToken<Any> atToken)
@@ -246,17 +248,17 @@ public sealed class Parser
 		var returnType = Match<Any>(SyntaxKind.AllPredefinedOrUserTypes);		
 		
 		var block = ParseBlockStatement();
-		return new GenericFunctionDeclaration(in atToken,
-		                                      in genericKeyword,
-		                                      in lessToken,
-		                                      in genericType,
-		                                      in greaterToken,
-		                                      in constraint, 
-		                                      in openBracket, in modifiers, in closeBracket, 
-		                                      in identifier, 
-		                                      in openParen, in parameters, in closeParen, 
-		                                      in arrowToken, in returnType, 
-		                                      in block);
+		return new GenericFunctionDeclaration(atToken,
+		                                      genericKeyword,
+		                                      lessToken,
+		                                      genericType,
+		                                      greaterToken,
+		                                      constraint, 
+		                                      openBracket, modifiers, closeBracket, 
+		                                      identifier, 
+		                                      openParen, parameters, closeParen, 
+		                                      arrowToken, returnType, 
+		                                      block);
 	}
 	
 	private GlobalVariableDeclaration ParseGlobalVariableDeclaration(
@@ -271,23 +273,23 @@ public sealed class Parser
 		{
 			var initializer = ParseExpression();
 			semicolon = Match<Delimiter>(in SyntaxKind.SemicolonToken);
-			return new GlobalVariableDeclaration(in openBracket, 
-			                                     in modifiers, 
-			                                     in closeBracket, 
-			                                     in type, 
-			                                     in identifier, 
-			                                     in equalsToken, 
-			                                     in initializer, 
-			                                     in semicolon);
+			return new GlobalVariableDeclaration(openBracket, 
+			                                     modifiers, 
+			                                     closeBracket, 
+			                                     type, 
+			                                     identifier, 
+			                                     equalsToken, 
+			                                     initializer, 
+			                                     semicolon);
 		}
 		
 		semicolon = Match<Delimiter>(in SyntaxKind.SemicolonToken);
-		return new GlobalVariableDeclaration(in openBracket, 
-		                                     in modifiers, 
-		                                     in closeBracket, 
-		                                     in type, in identifier, 
+		return new GlobalVariableDeclaration(openBracket, 
+		                                     modifiers, 
+		                                     closeBracket, 
+		                                     type, identifier, 
 		                                     null, null, 
-		                                     in semicolon);
+		                                     semicolon);
 	}
 
 	private GenericConstraintSyntax ParseGenericConstraintDeclaration()
@@ -297,7 +299,7 @@ public sealed class Parser
 		var colonToken = Match<Any>(in SyntaxKind.ColonToken);
 
 		var constraints = ParseConstraints();
-		return new GenericConstraintSyntax(in whenKeyword, in identifier, in colonToken, in constraints);
+		return new GenericConstraintSyntax(whenKeyword, identifier, colonToken, constraints);
 	}
 
 	private IReadOnlyList<ConstraintSyntax> ParseConstraints()
@@ -353,7 +355,7 @@ public sealed class Parser
 	private TypeConstraintSyntax ParseIdentifierConstraint()
 	{
 		var identifier = Match<Identifier>(in SyntaxKind.IdentifierToken);
-		return new TypeConstraintSyntax(in identifier);
+		return new TypeConstraintSyntax(identifier);
 	}
 	
 	private ConstructorConstraintSyntax ParseConstructorConstraint()
@@ -362,7 +364,7 @@ public sealed class Parser
 		var openParen = Match<Any>(in SyntaxKind.OpenParenToken);
 		var parameters = ParseGenericParameters();
 		var closeParen = Match<Any>(in SyntaxKind.CloseParenToken);
-		return new ConstructorConstraintSyntax(in ctorKeyword, in openParen, in parameters, in closeParen);
+		return new ConstructorConstraintSyntax(ctorKeyword, openParen, parameters, closeParen);
 	}
 
 	private MethodConstraintSyntax ParseMethodConstraint()
@@ -373,9 +375,8 @@ public sealed class Parser
 		var openParen = Match<Any>(in SyntaxKind.OpenParenToken);
 		var parameters = ParseGenericParameters();
 		var closeParen = Match<Any>(in SyntaxKind.CloseParenToken);
-		return new MethodConstraintSyntax(in genericIdentifier, in dotToken, in methodName, in openParen, in parameters, in closeParen);
+		return new MethodConstraintSyntax(genericIdentifier, dotToken, methodName, openParen, parameters, closeParen);
 	}
-	
 	
 	private (SyntaxToken<Bracket>, ModifierSyntaxList, SyntaxToken<Bracket>) ParseModifiers()
 	{
@@ -427,7 +428,7 @@ public sealed class Parser
 	{
 		var type = Match<Identifier>(SyntaxKind.AllPredefinedOrUserTypes);
 		var identifier = Match<Identifier>(in SyntaxKind.IdentifierToken);
-		return new ParameterSyntax(in type, in identifier);
+		return new ParameterSyntax(type, identifier);
 	}
 
 	private StatementSyntax ParseStatement()
@@ -450,10 +451,10 @@ public sealed class Parser
 		if (TryMatch<Any>(in SyntaxKind.EqualsToken, out var equals))
 		{
 			var expression = ParseExpression();
-			return new EnumFieldDeclarationSyntax(in identifier, in equals, in expression);
+			return new EnumFieldDeclarationSyntax(identifier, equals, expression);
 		}
 
-		return new EnumFieldDeclarationSyntax(in identifier, null, null);
+		return new EnumFieldDeclarationSyntax(identifier, null, null);
 	}
 	
 	private BlockStatementSyntax ParseBlockStatement()
@@ -468,7 +469,7 @@ public sealed class Parser
 		}
 
 		var closeBraceToken = Match<Any>(in SyntaxKind.CloseBraceToken);
-		return new BlockStatementSyntax(in openBraceToken, statements, in closeBraceToken);
+		return new BlockStatementSyntax(openBraceToken, statements, closeBraceToken);
 	}
 
 	private VariableDeclarationSyntax ParseVariableDeclaration()
@@ -492,12 +493,12 @@ public sealed class Parser
 		if (!TryMatch<Any>(in SyntaxKind.EqualsToken, out var equalsToken))
 		{
 			semicolon = Match<Delimiter>(in SyntaxKind.SemicolonToken);
-			return new VariableDeclarationSyntax(in mutability, in keyword, in identifier, null, null, in semicolon);
+			return new VariableDeclarationSyntax(mutability, keyword, identifier, null, null, semicolon);
 		}
 
 		var initializer = ParseExpression();
 		semicolon = Match<Delimiter>(in SyntaxKind.SemicolonToken);
-		return new VariableDeclarationSyntax(in mutability, in keyword, in identifier, in equalsToken, in initializer, in semicolon);
+		return new VariableDeclarationSyntax(mutability, keyword, identifier, equalsToken, initializer, semicolon);
 	}
 
 	private ExpressionStatementSyntax ParseExpressionStatement()
@@ -517,7 +518,7 @@ public sealed class Parser
 		    TryMatch<Any>(in SyntaxKind.EqualsToken, out var equalsToken))
 		{
 			var expression = ParseExpression();
-			return new AssignmentExpressionSyntax(in identifierToken, in equalsToken, in expression);
+			return new AssignmentExpressionSyntax(identifierToken, equalsToken, expression);
 		}
 		
 		return ParseUnaryExpression();
@@ -534,7 +535,7 @@ public sealed class Parser
 		{
 			var operatorToken = Match<Operator>(SyntaxKind.AllUnaryOperators); 
 			var operand = ParseUnaryExpression(in currentPrecedence);
-			left = new UnaryExpressionSyntax(in operatorToken, in operand);
+			left = new UnaryExpressionSyntax(operatorToken, operand);
 		}
 		else
 		{
@@ -567,7 +568,7 @@ public sealed class Parser
 			{
 				var operatorToken = Match<Operator>(SyntaxKind.AllBinaryOperators);
 				var right = ParseUnaryExpression(in currentPrecedence);
-				left = new BinaryExpressionSyntax(in left, in operatorToken, in right);
+				left = new BinaryExpressionSyntax(left, operatorToken, right);
 			}
 		}
 
@@ -581,7 +582,7 @@ public sealed class Parser
 		var consequent = ParseUnaryExpression(in parentPrecedence);
 		var colon = Match<Any>(in SyntaxKind.ColonToken);
 		var alternative = ParseUnaryExpression(in parentPrecedence);
-		return new TernaryExpressionSyntax(in condition, in questionMark, in consequent, in colon, in alternative);
+		return new TernaryExpressionSyntax(condition, questionMark, consequent, colon, alternative);
 	}
 	
 	private ExpressionSyntax ParsePrimaryExpression()
@@ -633,18 +634,18 @@ public sealed class Parser
 		var openParen = Match<Bracket>(in SyntaxKind.OpenParenToken);
 		var expression = ParseExpression();
 		var closeParen = Match<Bracket>(in SyntaxKind.CloseParenToken);
-		return new ParenthesizedExpressionSyntax(in openParen, in expression, in closeParen);
+		return new ParenthesizedExpressionSyntax(openParen, expression, closeParen);
 	}
 	
 	private ExpressionSyntax ParseStringLiteral()
 	{
 		if (TryMatch<string>(in SyntaxKind.StringLiteralToken, out var stringLiteral))
 		{
-			return new StringLiteralExpressionSyntax(in stringLiteral);
+			return new StringLiteralExpressionSyntax(stringLiteral);
 		}
 		if (TryMatch<char>(in SyntaxKind.CharLiteralToken, out var charLiteral))
 		{
-			return new CharLiteralExpressionSyntax(in charLiteral);
+			return new CharLiteralExpressionSyntax(charLiteral);
 		}
 
 		m_diagnostics.ReportUnexpectedToken(Current.Location, Current.Kind, out var diagnostic);
@@ -655,11 +656,11 @@ public sealed class Parser
 	{
 		if (TryMatch<bool>(in SyntaxKind.TrueKeyword, out var trueKeyword))
 		{
-			return new BooleanLiteralExpressionSyntax(in trueKeyword);
+			return new BooleanLiteralExpressionSyntax(trueKeyword);
 		}
 		if (TryMatch<bool>(in SyntaxKind.FalseKeyword, out var falseKeyword))
 		{
-			return new BooleanLiteralExpressionSyntax(in falseKeyword);
+			return new BooleanLiteralExpressionSyntax(falseKeyword);
 		}
 		
 		m_diagnostics.ReportUnexpectedToken(Current.Location, Current.Kind, SyntaxKind.TrueKeyword | SyntaxKind.FalseKeyword, out var diagnostic);
@@ -680,43 +681,43 @@ public sealed class Parser
 	{
 		if (TryMatch<int8>(in SyntaxKind.Int8LiteralToken, out var i8))
 		{
-			return new Int8LiteralExpressionSyntax(in i8);
+			return new Int8LiteralExpressionSyntax(i8);
 		}
 		if (TryMatch<uint8>(in SyntaxKind.UInt8LiteralToken, out var ui8))
 		{
-			return new UInt8LiteralExpressionSyntax(in ui8);
+			return new UInt8LiteralExpressionSyntax(ui8);
 		}
 		if (TryMatch<int16>(in SyntaxKind.Int16LiteralToken, out var i16))
 		{
-			return new Int16LiteralExpressionSyntax(in i16);
+			return new Int16LiteralExpressionSyntax(i16);
 		}
 		if (TryMatch<uint16>(in SyntaxKind.UInt16LiteralToken, out var ui16))
 		{
-			return new UInt16LiteralExpressionSyntax(in ui16);
+			return new UInt16LiteralExpressionSyntax(ui16);
 		}
 		if (TryMatch<int32>(in SyntaxKind.Int32LiteralToken, out var i32))
 		{
-			return new Int32LiteralExpressionSyntax(in i32);
+			return new Int32LiteralExpressionSyntax(i32);
 		}
 		if (TryMatch<uint32>(in SyntaxKind.UInt32LiteralToken, out var ui32))
 		{
-			return new UInt32LiteralExpressionSyntax(in ui32);
+			return new UInt32LiteralExpressionSyntax(ui32);
 		}
 		if (TryMatch<int64>(in SyntaxKind.Int64LiteralToken, out var i64))
 		{
-			return new Int64LiteralExpressionSyntax(in i64);
+			return new Int64LiteralExpressionSyntax(i64);
 		}
 		if (TryMatch<uint64>(in SyntaxKind.UInt64LiteralToken, out var ui64))
 		{
-			return new UInt64LiteralExpressionSyntax(in ui64);
+			return new UInt64LiteralExpressionSyntax(ui64);
 		}
 		if (TryMatch<float32>(in SyntaxKind.Float32LiteralToken, out var f32))
 		{
-			return new Float32LiteralExpressionSyntax(in f32);
+			return new Float32LiteralExpressionSyntax(f32);
 		}
 		if (TryMatch<float64>(in SyntaxKind.Float64LiteralToken, out var f64))
 		{
-			return new Float64LiteralExpressionSyntax(in f64);
+			return new Float64LiteralExpressionSyntax(f64);
 		}
 
 		m_diagnostics.ReportUnexpectedToken(Current.Location, Current.Kind, out var diagnostic);
@@ -726,7 +727,7 @@ public sealed class Parser
 	private ExpressionSyntax ParseNameExpression()
 	{
 		var identifierToken = Match<Identifier>(in SyntaxKind.IdentifierToken);
-		return new NameExpressionSyntax(in identifierToken);
+		return new NameExpressionSyntax(identifierToken);
 	}
 	
 	/*

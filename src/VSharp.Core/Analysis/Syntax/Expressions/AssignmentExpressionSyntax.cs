@@ -3,9 +3,9 @@
 [PublicAPI]
 public sealed class AssignmentExpressionSyntax : ExpressionSyntax
 {
-	public AssignmentExpressionSyntax(in SyntaxToken<Identifier> identifier, 
-	                                  in SyntaxToken<Any> equalsToken, 
-	                                  in ExpressionSyntax expression)
+	public AssignmentExpressionSyntax(SyntaxToken<Identifier> identifier, 
+	                                  SyntaxToken<Any> equalsToken, 
+	                                  ExpressionSyntax expression)
 	{
 		Identifier = identifier;
 		EqualsToken = equalsToken;

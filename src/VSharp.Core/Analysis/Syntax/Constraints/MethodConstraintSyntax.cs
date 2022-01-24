@@ -3,12 +3,12 @@
 [PublicAPI]
 public sealed class MethodConstraintSyntax : ConstraintSyntax
 {
-	public MethodConstraintSyntax(in SyntaxToken<Identifier> identifier,
-	                              in SyntaxToken<Any> dotToken,
-	                              in SyntaxToken<Identifier> methodName,
-	                              in SyntaxToken<Any> openParenToken,
-	                              in IReadOnlyList<SyntaxToken<Identifier>> parameters,
-	                              in SyntaxToken<Any> closeParenToken)
+	public MethodConstraintSyntax(SyntaxToken<Identifier> identifier,
+	                              SyntaxToken<Any> dotToken,
+	                              SyntaxToken<Identifier> methodName,
+	                              SyntaxToken<Any> openParenToken,
+	                              IReadOnlyList<SyntaxToken<Identifier>> parameters,
+	                              SyntaxToken<Any> closeParenToken)
 	{
 		Identifier = identifier;
 		DotToken = dotToken;

@@ -3,10 +3,10 @@
 [PublicAPI]
 public sealed class ConstructorConstraintSyntax : ConstraintSyntax
 {
-	public ConstructorConstraintSyntax(in SyntaxToken<Keyword> ctorKeyword,
-	                                   in SyntaxToken<string> openParenToken, 
-	                                   in IReadOnlyList<SyntaxToken<Identifier>> parameters, 
-	                                   in SyntaxToken<string> closeParenToken)
+	public ConstructorConstraintSyntax(SyntaxToken<Keyword> ctorKeyword,
+	                                   SyntaxToken<string> openParenToken, 
+	                                   IReadOnlyList<SyntaxToken<Identifier>> parameters, 
+	                                   SyntaxToken<string> closeParenToken)
 	{
 		ConstructorKeyword = ctorKeyword;
 		OpenParenToken = openParenToken;

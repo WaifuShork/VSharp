@@ -45,7 +45,7 @@ public partial class Lexer
 		}
 
 		var text = sb.ToString();
-		var trailing = ScanSyntaxTrivia(TriviaKind.Trailing);
+		var trailing = ScanSyntaxTrivia(SyntaxKind.TrailingTrivia);
 		return CreateToken(leadingTrivia, SyntaxKind.StringLiteralToken, text, text, trailing);
 	}
 
@@ -103,7 +103,7 @@ public partial class Lexer
 			m_diagnostics.ReportInvalidCharacterConst(location, out _);
 		}
 		
-		var trailing = ScanSyntaxTrivia(TriviaKind.Trailing);
+		var trailing = ScanSyntaxTrivia(SyntaxKind.TrailingTrivia);
 		var codePointHex = text[0].ToHexString();
 		return CreateToken(leadingTrivia, SyntaxKind.CharLiteralToken, codePointHex, text[0], trailing);
 	}

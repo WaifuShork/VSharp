@@ -3,9 +3,9 @@
 [PublicAPI]
 public sealed class EnumFieldDeclarationSyntax : StatementSyntax 
 { 
-	public EnumFieldDeclarationSyntax(in SyntaxToken<Identifier> identifier, 
-	                                  in SyntaxToken<Any>? equalsToken, 
-	                                  in ExpressionSyntax? expression)
+	public EnumFieldDeclarationSyntax(SyntaxToken<Identifier> identifier, 
+	                                  SyntaxToken<Any>? equalsToken, 
+	                                  ExpressionSyntax? expression)
 	{
 		Identifier = identifier;
 		EqualsToken = equalsToken;

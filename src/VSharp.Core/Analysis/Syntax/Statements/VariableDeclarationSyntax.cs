@@ -3,12 +3,12 @@
 [PublicAPI]
 public sealed class VariableDeclarationSyntax : StatementSyntax
 {
-	public VariableDeclarationSyntax(in SyntaxToken<string>? mutabilityKeyword,
-									 in SyntaxToken<string> keyword, 
-	                                 in SyntaxToken<string> identifier, 
-	                                 in SyntaxToken<string>? equalsToken, 
-	                                 in ExpressionSyntax? initializer, 
-	                                 in SyntaxToken<Delimiter> semicolon)
+	public VariableDeclarationSyntax(SyntaxToken<string>? mutabilityKeyword,
+									 SyntaxToken<string> keyword, 
+	                                 SyntaxToken<string> identifier, 
+	                                 SyntaxToken<string>? equalsToken, 
+	                                 ExpressionSyntax? initializer, 
+	                                 SyntaxToken<Delimiter> semicolon)
 	{
 		MutabilityKeyword = mutabilityKeyword;
 		Keyword = keyword;

@@ -3,12 +3,12 @@
 [PublicAPI]
 public sealed class StructDeclarationSyntax : MemberSyntax
 {
-	public StructDeclarationSyntax(in SyntaxToken<Bracket> openBracketToken,
-	                               in ModifierSyntaxList modifiers,
-	                               in SyntaxToken<Bracket> closeBracketToken,
-	                               in SyntaxToken<string> keyword,
-	                               in SyntaxToken<string> identifier,
-	                               in BlockStatementSyntax block)
+	public StructDeclarationSyntax(SyntaxToken<Bracket> openBracketToken,
+	                               ModifierSyntaxList modifiers,
+	                               SyntaxToken<Bracket> closeBracketToken,
+	                               SyntaxToken<string> keyword,
+	                               SyntaxToken<string> identifier,
+	                               BlockStatementSyntax block)
 	{
 		OpenBracketToken = openBracketToken;
 		Modifiers = modifiers;

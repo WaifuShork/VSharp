@@ -10,7 +10,7 @@ public partial class Lexer
 	// Trivia gets the same position as the token it's attached to because that makes it easier 
 	// to locate a trivia based on the token, no extra math will or off-by-one errors will need to
 	// be taken care of with extra precautions
-	private IReadOnlyList<SyntaxTrivia> ScanSyntaxTrivia(TriviaKind kind)
+	private IReadOnlyList<SyntaxTrivia> ScanSyntaxTrivia(SyntaxKind triviaKind)
 	{
 		var builder = new List<SyntaxTrivia>();
 		var done = false;
@@ -45,7 +45,7 @@ public partial class Lexer
 			    }
 			    case var _ when Current.IsNewLine():
 			    {
-				    if (kind == TriviaKind.Trailing)
+				    if (triviaKind == SyntaxKind.TrailingTrivia)
 				    {
 					    done = true;
 				    }

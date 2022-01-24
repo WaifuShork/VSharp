@@ -3,9 +3,9 @@
 [PublicAPI]
 public class BinaryExpressionSyntax : ExpressionSyntax
 {
-	public BinaryExpressionSyntax(in ExpressionSyntax left, 
-	                              in SyntaxToken<string> operatorToken,
-	                              in ExpressionSyntax right)
+	public BinaryExpressionSyntax(ExpressionSyntax left, 
+	                              SyntaxToken<string> operatorToken,
+	                              ExpressionSyntax right)
 	{
 		Left = left;
 		Operator = operatorToken;

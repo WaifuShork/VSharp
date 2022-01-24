@@ -3,12 +3,12 @@
 [PublicAPI]
 public class ImportDirectiveSyntax : MemberSyntax
 {
-	public ImportDirectiveSyntax(in SyntaxToken<string> useKeyword, 
-	                             in SyntaxToken<string>? openBracketToken,
-	                             in IReadOnlyList<SyntaxToken<string>>? identifiers,
-	                             in SyntaxToken<string>? closeBracketToken,
-	                             in SyntaxToken<string>? fromKeyword,
-	                             in SyntaxToken<string> moduleIdentifier)
+	public ImportDirectiveSyntax(SyntaxToken<string> useKeyword, 
+	                             SyntaxToken<string>? openBracketToken,
+	                             IReadOnlyList<SyntaxToken<string>>? identifiers,
+	                             SyntaxToken<string>? closeBracketToken,
+	                             SyntaxToken<string>? fromKeyword,
+	                             SyntaxToken<string> moduleIdentifier)
 	{
 		UseKeyword = useKeyword;
 		OpenBracketToken = openBracketToken;

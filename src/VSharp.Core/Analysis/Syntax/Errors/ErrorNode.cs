@@ -3,7 +3,7 @@
 [PublicAPI]
 public sealed class ErrorNode : SyntaxNode
 {
-	public ErrorNode(in DiagnosticInfo diagnostic)
+	public ErrorNode(DiagnosticInfo diagnostic)
 	{
 		Diagnostic = diagnostic;
 	}

@@ -6,16 +6,16 @@ public sealed class FunctionDeclarationSyntax : MemberSyntax
 	// [public, static] Identifier(parameters) -> returnType { }
 	// [public, immutable] Identifier(parameters) -> returnType { }
 	// [public, mutable] Identifier(parameters) -> returnType { }
-	public FunctionDeclarationSyntax(in SyntaxToken<Bracket> openBracketToken,
-	                                 in ModifierSyntaxList modifiers,
-	                                 in SyntaxToken<Bracket> closeBracketToken,
-	                                 in SyntaxToken<string> identifier,
-	                                 in SyntaxToken<Bracket> openParenToken,
-	                                 in ParameterSyntaxList parameters,
-	                                 in SyntaxToken<Bracket> closeParenToken,
-	                                 in SyntaxToken<string> arrowToken,
-	                                 in SyntaxToken<string> returnType,
-	                                 in BlockStatementSyntax block)
+	public FunctionDeclarationSyntax(SyntaxToken<Bracket> openBracketToken,
+	                                 ModifierSyntaxList modifiers,
+	                                 SyntaxToken<Bracket> closeBracketToken,
+	                                 SyntaxToken<string> identifier,
+	                                 SyntaxToken<Bracket> openParenToken,
+	                                 ParameterSyntaxList parameters,
+	                                 SyntaxToken<Bracket> closeParenToken,
+	                                 SyntaxToken<string> arrowToken,
+	                                 SyntaxToken<string> returnType,
+	                                 BlockStatementSyntax block)
 	{
 		OpenBracketToken = openBracketToken;
 		Modifiers = modifiers;

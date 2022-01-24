@@ -32,7 +32,7 @@ public partial class Lexer
 			return CreateToken(SyntaxKind.None, text, text);
 		}
 		
-		var trailing = ScanSyntaxTrivia(TriviaKind.Trailing);
+		var trailing = ScanSyntaxTrivia(SyntaxKind.TrailingTrivia);
 		return CreateToken(leading, SyntaxKind.Float64LiteralToken, text, value, trailing);
 	}
 }

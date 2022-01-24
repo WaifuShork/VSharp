@@ -352,6 +352,8 @@ public struct SyntaxKind : IEquatable<SyntaxKind>, IComparable<SyntaxKind>, ICom
 	public static readonly SyntaxKind None;
 	public static readonly SyntaxKind BadToken;
 	public static readonly SyntaxKind EndOfFileToken;
+	public static readonly SyntaxKind LeadingTrivia;
+	public static readonly SyntaxKind TrailingTrivia;
 	public static readonly SyntaxKind WhiteSpaceToken;
 	public static readonly SyntaxKind NewLineToken;
 	public static readonly SyntaxKind SingleLineCommentToken;
