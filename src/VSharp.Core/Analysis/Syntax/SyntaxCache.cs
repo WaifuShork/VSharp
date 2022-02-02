@@ -210,6 +210,7 @@ public class SyntaxCache
 		{ SyntaxKind.UInt32Keyword, "uint32"},
 		{ SyntaxKind.Int64Keyword, "int64"},
 		{ SyntaxKind.UInt64Keyword, "uint64"},
+		{ SyntaxKind.InfinityIntKeyword, "infint"},
 		
 		{ SyntaxKind.Float32Keyword, "float32"},
 		{ SyntaxKind.Float64Keyword, "float64"},
@@ -249,6 +250,7 @@ public class SyntaxCache
 		{ "uint32", SyntaxKind.UInt32Keyword },
 		{ "int64", SyntaxKind.Int64Keyword },
 		{ "uint64", SyntaxKind.UInt64Keyword },
+		{ "infint", SyntaxKind.InfinityIntKeyword },
 
 		{ "float32", SyntaxKind.Float32Keyword },
 		{ "float64", SyntaxKind.Float64Keyword },
@@ -267,5 +269,8 @@ public class SyntaxCache
 		{ "generic", SyntaxKind.GenericKeyword },
 		{ "when", SyntaxKind.WhenKeyword },
 		{ "ctor", SyntaxKind.ConstructorKeyword },
+		{ "alloc", SyntaxKind.AllocKeyword },
+		{ "heap", SyntaxKind.HeapKeyword },
+		{ "stack", SyntaxKind.StackKeyword },
 	}, LazyThreadSafetyMode.PublicationOnly);
 }

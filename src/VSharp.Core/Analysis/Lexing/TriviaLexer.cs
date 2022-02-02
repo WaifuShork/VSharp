@@ -10,7 +10,7 @@ public partial class Lexer
 	// Trivia gets the same position as the token it's attached to because that makes it easier 
 	// to locate a trivia based on the token, no extra math will or off-by-one errors will need to
 	// be taken care of with extra precautions
-	private IReadOnlyList<SyntaxTrivia> ScanSyntaxTrivia(SyntaxKind triviaKind)
+	private IReadOnlyList<SyntaxTrivia> ScanSyntaxTrivia(in SyntaxKind triviaKind)
 	{
 		var builder = new List<SyntaxTrivia>();
 		var done = false;
@@ -85,7 +85,7 @@ public partial class Lexer
 		    Advance();
 	    }
 	    
-	    return new SyntaxTrivia(SyntaxKind.NewLineToken, m_tokenPosition, GetFullSpan());
+	    return new SyntaxTrivia(in SyntaxKind.NewLineToken, m_tokenPosition, GetFullSpan());
     }
 
     private SyntaxTrivia ScanSingleLineComment()

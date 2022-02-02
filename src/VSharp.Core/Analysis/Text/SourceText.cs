@@ -15,8 +15,8 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
         Lines = ParseLines(this, text);
     }
 
-    public static readonly SourceText Empty = new(""); 
-    
+    public static readonly SourceText Empty = new("");
+
     public int Length { get; }
     public string FileName { get; }
     public string Text { get; }
@@ -50,6 +50,21 @@ public sealed class SourceText : IComparable, ICloneable, IConvertible, ICompara
 
             return From(From(in range));
         }
+    }
+
+    public SourceText Replace(string value, string with)
+    {
+        return new SourceText(Text.Replace(value, with), FileName);
+    }
+
+    public SourceText Replace(SourceText value, SourceText with)
+    {
+        return new SourceText(Text.Replace(value.Text, with.Text), FileName);
+    }
+
+    public SourceText RemoveAt(int index, int amount = 1)
+    {
+        return new SourceText(Text.Remove(index, amount), FileName);
     }
 
     public char At(in int index)

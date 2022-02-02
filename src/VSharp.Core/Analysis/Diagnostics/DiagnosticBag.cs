@@ -14,8 +14,8 @@ public sealed class DiagnosticBag : IEnumerable<DiagnosticInfo>
 		_ = m_factory.MakeWarnings(diagnostics.Where(d => d.IsWarning));
 		_ = m_factory.MakeErrors(diagnostics.Where(d => d.IsError) );
 	}
-
-	public static T GenerateErrorNode<T>(DiagnosticInfo info) where T : SyntaxNode
+	
+	public static T CreateErrorNode<T>(DiagnosticInfo info) where T : SyntaxNode
 	{
 		if (Activator.CreateInstance(typeof(T), info) is T valid)
 		{

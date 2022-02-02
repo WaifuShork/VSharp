@@ -170,3 +170,20 @@ public sealed class Float64LiteralExpressionSyntax : ExpressionSyntax
 		yield return NumberToken;
 	}
 }
+
+[PublicAPI]
+public sealed class InfinityIntLiteralExpressionSyntax : ExpressionSyntax
+{
+	public InfinityIntLiteralExpressionSyntax(SyntaxToken<infint> numberToken)
+	{
+		NumberToken = numberToken;
+	}
+
+	public override SyntaxKind Kind => SyntaxKind.InfinityIntLiteralToken;
+	public SyntaxToken<infint> NumberToken { get; }
+	
+	public override IEnumerable<SyntaxNode> GetChildren()
+	{
+		yield return NumberToken;
+	}
+}

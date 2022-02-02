@@ -4,7 +4,7 @@
 public sealed class VariableDeclarationSyntax : StatementSyntax
 {
 	public VariableDeclarationSyntax(SyntaxToken<string>? mutabilityKeyword,
-									 SyntaxToken<string> keyword, 
+									 SyntaxToken<string>? keyword, 
 	                                 SyntaxToken<string> identifier, 
 	                                 SyntaxToken<string>? equalsToken, 
 	                                 ExpressionSyntax? initializer, 
@@ -20,7 +20,7 @@ public sealed class VariableDeclarationSyntax : StatementSyntax
 	
 	public override SyntaxKind Kind => SyntaxKind.VariableDeclaration;
 	public SyntaxToken<string>? MutabilityKeyword { get; }
-	public SyntaxToken<string> Keyword { get; }
+	public SyntaxToken<string>? Keyword { get; }
 	public SyntaxToken<string> Identifier { get; }
 	public SyntaxToken<string>? EqualsToken { get; }
 	public ExpressionSyntax? Initializer { get; }
@@ -32,7 +32,12 @@ public sealed class VariableDeclarationSyntax : StatementSyntax
 		{
 			yield return MutabilityKeyword;
 		}
-		yield return Keyword;
+
+		if (Keyword is not null)
+		{
+			yield return Keyword;
+		}
+		
 		yield return Identifier;
 		if (EqualsToken is not null)
 		{

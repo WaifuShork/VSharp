@@ -1,10 +1,12 @@
 ﻿global using System;
+global using System.Collections;
 global using JetBrains.Annotations;
 global using VSharp.Core.Utilities;
 global using VSharp.Core.Extensions;
 global using VSharp.Core.Utilities.IO;
 global using VSharp.Core.Configuration;
 global using VSharp.Core.Analysis.Text;
+global using System.Collections.Generic;
 global using VSharp.Core.Analysis.Syntax;
 global using VSharp.Core.Analysis.Lexing;
 global using VSharp.Core.Analysis.Parsing;
@@ -36,6 +38,7 @@ global using int32 = System.Int32;
 global using uint32 = System.UInt32;
 global using int64 = System.Int64;
 global using uint64 = System.UInt64;
+global using infint = System.Numerics.BigInteger;
 
 global using float32 = System.Single;
 global using float64 = System.Double;

@@ -26,6 +26,8 @@ public interface ISyntaxToken
 	IReadOnlyList<SyntaxTrivia> TrailingTrivia { get; }
 	public TextLocation Location { get; }
 	public string ToString(Formatting formatting);
+	public bool Is(in SyntaxKind kind);
+	public bool IsNot(in SyntaxKind kind);
 }
 
 [PublicAPI]
@@ -34,7 +36,7 @@ public class SyntaxToken<T> : SyntaxNode, ISyntaxToken
 {
 	public SyntaxToken(
 		IReadOnlyList<SyntaxTrivia> leadingTrivia, 
-		SyntaxKind kind, 
+		in SyntaxKind kind, 
 		string text, 
 		T? value, 
 		int position,
@@ -144,6 +146,16 @@ public class SyntaxToken<T> : SyntaxNode, ISyntaxToken
 		}
 
 		return sb.ToString();
+	}
+
+	public bool Is(in SyntaxKind kind)
+	{
+		return Kind == kind;
+	}
+
+	public bool IsNot(in SyntaxKind kind)
+	{
+		return !Is(in kind);
 	}
 	
 	private string DebuggerDisplay => ToString(Formatting.Expanded);

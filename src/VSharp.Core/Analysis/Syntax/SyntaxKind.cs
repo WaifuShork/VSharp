@@ -436,10 +436,10 @@ public struct SyntaxKind : IEquatable<SyntaxKind>, IComparable<SyntaxKind>, ICom
 	public static readonly SyntaxKind LessLessEqualsToken;
 	public static readonly SyntaxKind GreaterGreaterEqualsToken;
 	public static readonly SyntaxKind TildeEqualsToken;
-	public readonly SyntaxKind AllCompoundOperators => CaretEqualsToken          | PlusEqualsToken      | MinusEqualsToken 
-													 | AsteriskEqualsToken       | FSlashEqualsToken    | PercentEqualsToken 
-													 | PipeEqualsToken           | AmpersandEqualsToken | LessLessEqualsToken 
-													 | GreaterGreaterEqualsToken | TildeEqualsToken;
+	public static SyntaxKind AllCompoundOperators => CaretEqualsToken          | PlusEqualsToken      | MinusEqualsToken 
+												   | AsteriskEqualsToken       | FSlashEqualsToken    | PercentEqualsToken 
+												   | PipeEqualsToken           | AmpersandEqualsToken | LessLessEqualsToken 
+												   | GreaterGreaterEqualsToken | TildeEqualsToken;
 	
 	// Keywords
 	public static readonly SyntaxKind TypeOfKeyword;
@@ -476,40 +476,47 @@ public struct SyntaxKind : IEquatable<SyntaxKind>, IComparable<SyntaxKind>, ICom
 	public static readonly SyntaxKind UInt64Keyword;
 	public static readonly SyntaxKind Float32Keyword;
 	public static readonly SyntaxKind Float64Keyword;
+	public static readonly SyntaxKind InfinityIntKeyword;
 	public static readonly SyntaxKind UseKeyword;
 	public static readonly SyntaxKind FromKeyword;
 	public static readonly SyntaxKind ModuleKeyword;
 	public static readonly SyntaxKind GenericKeyword;
 	public static readonly SyntaxKind WhenKeyword;
 	public static readonly SyntaxKind ConstructorKeyword;
-	public static SyntaxKind AllKeywords => TypeOfKeyword  | NameOfKeyword  | SizeOfKeyword 
-	                                      | NewKeyword     | LetKeyword     | ConstKeyword 
-	                                      | PublicKeyword  | PrivateKeyword | ClassKeyword 
-	                                      | StructKeyword  | StaticKeyword  | ImmutableKeyword 
-	                                      | MutableKeyword | ThisKeyword    | ValueKeyword 
-	                                      | NilKeyword     | TrueKeyword    | FalseKeyword
-	                                      | ObjectKeyword  | StringKeyword  | CharKeyword
-	                                      | BoolKeyword    | Int8Keyword    | UInt8Keyword 
-	                                      | Int16Keyword   | UInt16Keyword  | Int32Keyword 
-	                                      | UInt32Keyword  | Int64Keyword   | UInt64Keyword 
-	                                      | Float32Keyword | Float64Keyword | VarKeyword 
-	                                      | UseKeyword     | FromKeyword    | ModuleKeyword 
-	                                      | GenericKeyword | WhenKeyword    | ConstructorKeyword | EnumKeyword;
+	public static readonly SyntaxKind AllocKeyword;
+	public static readonly SyntaxKind HeapKeyword;
+	public static readonly SyntaxKind StackKeyword;
+	public static SyntaxKind AllKeywords => TypeOfKeyword  | NameOfKeyword  	| SizeOfKeyword 
+	                                      | NewKeyword     | LetKeyword     	| ConstKeyword 
+	                                      | PublicKeyword  | PrivateKeyword 	| ClassKeyword 
+	                                      | StructKeyword  | StaticKeyword  	| ImmutableKeyword 
+	                                      | MutableKeyword | ThisKeyword    	| ValueKeyword 
+	                                      | NilKeyword     | TrueKeyword    	| FalseKeyword
+	                                      | ObjectKeyword  | StringKeyword  	| CharKeyword
+	                                      | BoolKeyword    | Int8Keyword    	| UInt8Keyword 
+	                                      | Int16Keyword   | UInt16Keyword  	| Int32Keyword 
+	                                      | UInt32Keyword  | Int64Keyword   	| UInt64Keyword 
+	                                      | Float32Keyword | Float64Keyword 	| VarKeyword 
+	                                      | UseKeyword     | FromKeyword    	| ModuleKeyword 
+	                                      | GenericKeyword | WhenKeyword    	| ConstructorKeyword 
+	                                      | EnumKeyword    | InfinityIntKeyword | AllocKeyword
+	                                      | HeapKeyword    | StackKeyword;
 
 	public static SyntaxKind AllModifiers => ImmutableKeyword | MutableKeyword 
 	                                       | PrivateKeyword   | PublicKeyword;
 
-	public static SyntaxKind AllPredefinedTypes => ObjectKeyword  | StringKeyword | CharKeyword 
-	                                             | BoolKeyword    | Int8Keyword   | UInt8Keyword 
-	                                             | Int16Keyword   | UInt16Keyword | Int32Keyword 
-	                                             | UInt32Keyword  | Int64Keyword  | UInt64Keyword 
-	                                             | Float32Keyword | Float64Keyword;
+	public static SyntaxKind AllPredefinedTypes => ObjectKeyword  | StringKeyword  | CharKeyword 
+	                                             | BoolKeyword    | Int8Keyword    | UInt8Keyword 
+	                                             | Int16Keyword   | UInt16Keyword  | Int32Keyword 
+	                                             | UInt32Keyword  | Int64Keyword   | UInt64Keyword 
+	                                             | Float32Keyword | Float64Keyword | InfinityIntKeyword;
 
 	public static SyntaxKind LocalVariableDeclaration => AllPredefinedOrUserTypes | VarKeyword 
 	                                                   | ImmutableKeyword		  | MutableKeyword;
 	
 	public static SyntaxKind AllPredefinedOrUserTypes => AllPredefinedTypes | IdentifierToken | VarKeyword;
 
+	public static SyntaxKind AllArguments => IdentifierToken | AllLiterals;
 	
 	// Lonely Identifier (lol)
 	public static readonly SyntaxKind IdentifierToken;
@@ -528,17 +535,18 @@ public struct SyntaxKind : IEquatable<SyntaxKind>, IComparable<SyntaxKind>, ICom
 	public static readonly SyntaxKind UInt64LiteralToken;
 	public static readonly SyntaxKind Float32LiteralToken;
 	public static readonly SyntaxKind Float64LiteralToken;
+	public static readonly SyntaxKind InfinityIntLiteralToken;
 	
-	public static SyntaxKind AllLiterals => StringLiteralToken | CharLiteralToken   | BoolLiteralToken    
-	                                      | Int8LiteralToken   | UInt8LiteralToken  | Int16LiteralToken   
-	                                      | UInt16LiteralToken | Int32LiteralToken  | UInt32LiteralToken  
-	                                      | Int64LiteralToken  | UInt64LiteralToken | Float32LiteralToken 
-	                                      | Float64LiteralToken;
+	public static SyntaxKind AllLiterals => StringLiteralToken  | CharLiteralToken   | BoolLiteralToken    
+	                                      | Int8LiteralToken    | UInt8LiteralToken  | Int16LiteralToken   
+	                                      | UInt16LiteralToken  | Int32LiteralToken  | UInt32LiteralToken  
+	                                      | Int64LiteralToken   | UInt64LiteralToken | Float32LiteralToken 
+	                                      | Float64LiteralToken | InfinityIntLiteralToken;
 	
-	public static SyntaxKind AllNumericLiterals => Int8LiteralToken   | UInt8LiteralToken  | Int16LiteralToken   
-	                                             | UInt16LiteralToken | Int32LiteralToken  | UInt32LiteralToken  
-	                                             | Int64LiteralToken  | UInt64LiteralToken | Float32LiteralToken 
-	                                             | Float64LiteralToken;
+	public static SyntaxKind AllNumericLiterals => Int8LiteralToken    | UInt8LiteralToken  | Int16LiteralToken   
+	                                             | UInt16LiteralToken  | Int32LiteralToken  | UInt32LiteralToken  
+	                                             | Int64LiteralToken   | UInt64LiteralToken | Float32LiteralToken 
+	                                             | Float64LiteralToken | InfinityIntLiteralToken;
 	
 	// Node Types
 	public static readonly SyntaxKind BinaryExpression;
@@ -559,6 +567,7 @@ public struct SyntaxKind : IEquatable<SyntaxKind>, IComparable<SyntaxKind>, ICom
 	public static readonly SyntaxKind ModuleDeclaration;
 	public static readonly SyntaxKind GlobalVariableDeclaration;
 	public static readonly SyntaxKind EnumFieldDeclaration;
+	public static readonly SyntaxKind ConstructorCallExpression;
 	public static readonly SyntaxKind Parameter;
 	public static readonly SyntaxKind ModifierList;
 	public static readonly SyntaxKind ParameterList;
@@ -592,7 +601,8 @@ public struct SyntaxKind : IEquatable<SyntaxKind>, IComparable<SyntaxKind>, ICom
 	                                                | UInt16LiteralExpression | Int32LiteralExpression  | UInt32LiteralExpression 
 	                                                | Int64LiteralExpression  | UInt64LiteralExpression | Float32LiteralExpression 
 	                                                | Float64LiteralExpression;
-	
+	public static readonly SyntaxKind PostfixExpression;
+
 	public static readonly SyntaxKind GenericConstraint;
 	// public static readonly SyntaxKind GenericConstraintDeclaration;
 	
@@ -601,6 +611,8 @@ public struct SyntaxKind : IEquatable<SyntaxKind>, IComparable<SyntaxKind>, ICom
 	public static readonly SyntaxKind ConstructorConstraint;
 	public static SyntaxKind AllConstraints => GenericConstraint     | MethodConstraint 
 	                                         | ConstructorConstraint | TypeConstraint;
+
+	public static readonly SyntaxKind SyntaxList;
 
 	// ReSharper restore UnassignedReadonlyField
 }

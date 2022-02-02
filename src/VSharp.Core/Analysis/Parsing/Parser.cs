@@ -58,8 +58,24 @@ public sealed class Parser
 		var members = new List<MemberSyntax>();
 		while (CurrentIsNot(in SyntaxKind.EndOfFileToken) && NotAtEnd)
 		{
+			var startToken = Current;
 			var member = ParseMember();
 			members.Add(member);
+
+			/*
+			 * NOTE(everyone):
+			 *	- If ParseMember() does not consume a token, then we'll end in an infinite loop,
+			 *	so to mitigate that we skip the current token, then continue to try and parse another
+			 *	member.
+			 *
+			 *	- There's no need to report errors here because we'd have already failed and reported
+			 *	an error during expression/statement parsing, we don't care what went wrong, we just
+			 *	don't want to get stuck.
+			 */
+			if (Current == startToken)
+			{
+				_ = Consume();
+			}
 		}
 
 		return members;
@@ -104,7 +120,7 @@ public sealed class Parser
 		}
 
 		m_diagnostics.ReportUnexpectedToken(Current.Location, Current.Kind, out var diagnostic);
-		return DiagnosticBag.GenerateErrorNode<ErrorMemberNode>(diagnostic);
+		return DiagnosticBag.CreateErrorNode<ErrorMemberNode>(diagnostic);
 	}
 	
 	private ImportDirectiveSyntax ParseImportDirective()
@@ -325,12 +341,12 @@ public sealed class Parser
 		{
 			return ParseConstructorConstraint();
 		}
-		if (CurrentIs(in SyntaxKind.IdentifierToken) && NextIsNot(in SyntaxKind.DotToken))
+		if (CurrentIs(in SyntaxKind.IdentifierToken) && NextIs(in SyntaxKind.DotToken))
 		{
-			return ParseIdentifierConstraint();
+			return ParseMethodConstraint();
 		}
- 
-		return ParseMethodConstraint();
+		
+		return ParseIdentifierConstraint();
 	}
 
 	private IReadOnlyList<SyntaxToken<Identifier>> ParseGenericParameters()
@@ -444,7 +460,7 @@ public sealed class Parser
 
 		return ParseExpressionStatement();
 	}
-
+	
 	private EnumFieldDeclarationSyntax ParseEnumFieldDeclaration()
 	{
 		var identifier = Match<Identifier>(in SyntaxKind.IdentifierToken);
@@ -465,6 +481,8 @@ public sealed class Parser
 		while (CurrentIsNot(in SyntaxKind.CloseBraceToken) && NotAtEnd)
 		{
 			var statement = ParseStatement();
+			// edge case for assignment expressions
+			_ = TryMatch<Delimiter>(in SyntaxKind.SemicolonToken, out _);
 			statements.Add(statement);
 		}
 
@@ -484,21 +502,33 @@ public sealed class Parser
 			mutability = mutable;
 		}
 
-		var keyword = Match<Keyword>(SyntaxKind.AllPredefinedOrUserTypes);
-		var identifier = Match<Identifier>(in SyntaxKind.IdentifierToken);
-
+		SyntaxToken<Identifier> identifier;
 		SyntaxToken<Delimiter> semicolon;
+		SyntaxToken<Any>? equalsToken;
+ 		
+		if (CurrentIs(in SyntaxKind.IdentifierToken) && NextIs(SyntaxKind.AllCompoundOperators))
+		{
+			identifier = Match<Identifier>(in SyntaxKind.IdentifierToken);
+			equalsToken = Match<Any>(SyntaxKind.AllCompoundOperators);
+			var initializer = ParseExpression();
+			semicolon = Match<Delimiter>(in SyntaxKind.SemicolonToken);
+			return new VariableDeclarationSyntax(mutability, null, identifier, equalsToken, initializer, semicolon);
+		}
+		
+		var keyword = Match<Keyword>(SyntaxKind.AllPredefinedOrUserTypes);
+		identifier = Match<Identifier>(in SyntaxKind.IdentifierToken);
+		
 		// no initializer, even if we have "var x;", we will still consider it valid syntax
 		// and catch the error at the later stages
-		if (!TryMatch<Any>(in SyntaxKind.EqualsToken, out var equalsToken))
+		if (TryMatch(in SyntaxKind.EqualsToken, out equalsToken))
 		{
+			var initializer = ParseExpression();
 			semicolon = Match<Delimiter>(in SyntaxKind.SemicolonToken);
-			return new VariableDeclarationSyntax(mutability, keyword, identifier, null, null, semicolon);
+			return new VariableDeclarationSyntax(mutability, keyword, identifier, equalsToken, initializer, semicolon);
 		}
 
-		var initializer = ParseExpression();
 		semicolon = Match<Delimiter>(in SyntaxKind.SemicolonToken);
-		return new VariableDeclarationSyntax(mutability, keyword, identifier, equalsToken, initializer, semicolon);
+		return new VariableDeclarationSyntax(mutability, keyword, identifier, null, null, semicolon);
 	}
 
 	private ExpressionStatementSyntax ParseExpressionStatement()
@@ -515,7 +545,7 @@ public sealed class Parser
 	private ExpressionSyntax ParseAssignmentExpression()
 	{
 		if (TryMatch<Identifier>(in SyntaxKind.IdentifierToken, out var identifierToken) && 
-		    TryMatch<Any>(in SyntaxKind.EqualsToken, out var equalsToken))
+		    TryMatch<Any>(SyntaxKind.AllCompoundOperators, out var equalsToken))
 		{
 			var expression = ParseExpression();
 			return new AssignmentExpressionSyntax(identifierToken, equalsToken, expression);
@@ -559,12 +589,12 @@ public sealed class Parser
 			{
 				break;
 			}
-			
+
 			if (CurrentIs(in SyntaxKind.QuestionMarkToken))
 			{
 				left = ParseTernaryExpression(in left, in currentPrecedence);
 			}
-			else
+			else 
 			{
 				var operatorToken = Match<Operator>(SyntaxKind.AllBinaryOperators);
 				var right = ParseUnaryExpression(in currentPrecedence);
@@ -574,7 +604,7 @@ public sealed class Parser
 
 		return left;
 	}
-	
+
 	// condition is already set in stone, so we use the "in" modifier to ensure there's zero chance of modification
 	private TernaryExpressionSyntax ParseTernaryExpression(in ExpressionSyntax condition, in int parentPrecedence)
 	{
@@ -587,6 +617,10 @@ public sealed class Parser
 	
 	private ExpressionSyntax ParsePrimaryExpression()
 	{
+		if (CurrentIs(in SyntaxKind.AllocKeyword))
+		{
+			return ParseConstructorCall();
+		}
 		if (CurrentIs(in SyntaxKind.OpenParenToken))
 		{
 			return ParseParenthesizedExpression();
@@ -607,6 +641,7 @@ public sealed class Parser
 		{
 			return ParseNameExpression();
 		}
+		
 
 		/*
 		 * NOTE(everyone):
@@ -626,7 +661,49 @@ public sealed class Parser
 		               SyntaxKind.IdentifierToken;
 		
 		m_diagnostics.ReportUnexpectedToken(Current.Location, Current.Kind, expected, out var diagnostics);
-		return DiagnosticBag.GenerateErrorNode<ErrorExpressionNode>(diagnostics);
+		return DiagnosticBag.CreateErrorNode<ErrorExpressionNode>(diagnostics);
+	}
+
+	private ConstructorCallExpressionSyntax ParseConstructorCall()
+	{
+		var allocKeyword = Match<Keyword>(in SyntaxKind.AllocKeyword);
+		SyntaxToken<Identifier> type;
+		SyntaxToken<Bracket> openParen;
+		SyntaxList<SyntaxToken<Identifier>> arguments;
+		SyntaxToken<Bracket> closeParen;
+		if (TryMatch<Any>(in SyntaxKind.ColonToken, out var colon))
+		{
+			var allocator = Match<Identifier>(SyntaxKind.IdentifierToken | SyntaxKind.HeapKeyword | SyntaxKind.StackKeyword);
+			type = Match<Identifier>(SyntaxKind.AllPredefinedOrUserTypes);
+			openParen = Match<Bracket>(in SyntaxKind.OpenParenToken);
+			arguments = ParseArguments();
+			closeParen = Match<Bracket>(in SyntaxKind.CloseParenToken);
+			return new ConstructorCallExpressionSyntax(allocKeyword, colon, allocator, type, openParen, arguments, closeParen);
+		}
+		
+		type = Match<Identifier>(SyntaxKind.AllPredefinedOrUserTypes);
+		openParen = Match<Bracket>(in SyntaxKind.OpenParenToken);
+		arguments = ParseArguments();
+		closeParen = Match<Bracket>(in SyntaxKind.CloseParenToken);
+		return new ConstructorCallExpressionSyntax(allocKeyword, null, null, type, openParen, arguments, closeParen);
+	}
+
+	private SyntaxList<SyntaxToken<Identifier>> ParseArguments()
+	{
+		var parseNextArgument = true;
+		var arguments = new SyntaxList<SyntaxToken<Identifier>>();
+		while (parseNextArgument && CurrentIsNot(in SyntaxKind.CloseParenToken) && NotAtEnd)
+		{
+			arguments.Add(Match<Any>(SyntaxKind.AllArguments));
+			if (TryMatch<Delimiter>(in SyntaxKind.CommaToken, out _))
+			{
+				continue;
+			}
+			
+			parseNextArgument = false;
+		}
+
+		return arguments;
 	}
 	
 	private ExpressionSyntax ParseParenthesizedExpression()
@@ -649,7 +726,7 @@ public sealed class Parser
 		}
 
 		m_diagnostics.ReportUnexpectedToken(Current.Location, Current.Kind, out var diagnostic);
-		return DiagnosticBag.GenerateErrorNode<ErrorExpressionNode>(diagnostic);
+		return DiagnosticBag.CreateErrorNode<ErrorExpressionNode>(diagnostic);
 	}
 	
 	private ExpressionSyntax ParseBooleanLiteral()
@@ -664,7 +741,7 @@ public sealed class Parser
 		}
 		
 		m_diagnostics.ReportUnexpectedToken(Current.Location, Current.Kind, SyntaxKind.TrueKeyword | SyntaxKind.FalseKeyword, out var diagnostic);
-		return DiagnosticBag.GenerateErrorNode<ErrorExpressionNode>(diagnostic);
+		return DiagnosticBag.CreateErrorNode<ErrorExpressionNode>(diagnostic);
 	}
 
 	/*
@@ -719,9 +796,13 @@ public sealed class Parser
 		{
 			return new Float64LiteralExpressionSyntax(f64);
 		}
+		if (TryMatch<infint>(in SyntaxKind.InfinityIntLiteralToken, out var infInt))
+		{
+			return new InfinityIntLiteralExpressionSyntax(infInt);
+		}
 
 		m_diagnostics.ReportUnexpectedToken(Current.Location, Current.Kind, out var diagnostic);
-		return DiagnosticBag.GenerateErrorNode<ErrorExpressionNode>(diagnostic); 
+		return DiagnosticBag.CreateErrorNode<ErrorExpressionNode>(diagnostic); 
 	}
 
 	private ExpressionSyntax ParseNameExpression()
@@ -815,16 +896,15 @@ public sealed class Parser
 		// Whoops, let's make sure we maintain the tree
 		// Let's go ahead and eat the token anyways, so we don't get stuck in an infinite loop,
 		// we'll keep going until we reach the end
-		var current = Consume();
-		m_diagnostics.ReportUnexpectedToken(current.Location, current.Kind, kind, out var diagnostic);
+		m_diagnostics.ReportUnexpectedToken(Current.Location, Current.Kind, kind, out var diagnostic);
 		// we'll generate an error token
-		return new SyntaxToken<Error>(current.LeadingTrivia,
+		return new SyntaxToken<Error>(Current.LeadingTrivia,
 		                              SyntaxKind.BadToken,
 		                              "ERROR",
-		                              current.Text,
-		                              current.Position,
-		                              current.Line,
-		                              current.TrailingTrivia, 
+		                              Current.Text,
+		                              Current.Position,
+		                              Current.Line,
+		                              Current.TrailingTrivia, 
 		                              diagnostic);
 	}
 }

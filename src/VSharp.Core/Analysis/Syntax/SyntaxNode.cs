@@ -55,6 +55,8 @@ public abstract class SyntaxNode
 				return f32Token;
 			case SyntaxToken<float64> f64Token:
 				return f64Token;
+			case SyntaxToken<infint> infIntToken:
+				return infIntToken;
 		}
 		
 		return GetChildren().Last().GetLastToken();
@@ -96,8 +98,11 @@ public abstract class SyntaxNode
 			case SyntaxToken<bool> b:
 				await Console.Out.WriteAsync($": {b.Value}");
 				break;
-			case SyntaxToken<double> d:
+			case SyntaxToken<float64> d:
 				await Console.Out.WriteAsync($": {d.Value}");
+				break;
+			case SyntaxToken<infint> i:
+				await Console.Out.WriteAsync($": {i.Value}");
 				break;
 			case SyntaxToken<string> s:
 				await Console.Out.WriteAsync($": {s.Value}");
