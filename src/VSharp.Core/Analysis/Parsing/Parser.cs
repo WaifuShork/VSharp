@@ -8,7 +8,14 @@ using Syntax.Expressions;
 using WaifuShork.Common.QuickLinq;
 using System.Diagnostics.CodeAnalysis;
 
-[SuppressMessage("ReSharper", "InvertIf")]
+/*
+ * NOTE(everyone):
+ *	- Excessive use of "in" parameters is to ensure references aren't reassigned/modified,
+ *	and to inline SyntaxKind since it's a very large structure, we want to avoid copies.
+ */
+// leave me alone ReSharper
+[SuppressMessage("ReSharper", "InvertIf")]            
+[SuppressMessage("ReSharper", "UnusedMember.Local")] 
 public sealed class Parser
 {
 	private readonly IReadOnlyList<ISyntaxToken> m_tokens;
@@ -74,7 +81,8 @@ public sealed class Parser
 			 */
 			if (Current == startToken)
 			{
-				_ = Consume();
+				// We don't care what the value is, we just want to advance
+				AdvanceDiscard();
 			}
 		}
 
@@ -132,6 +140,7 @@ public sealed class Parser
 		// use MyModule;
 		if (TryMatch<Identifier>(in SyntaxKind.IdentifierToken, out var moduleIdentifier))
 		{
+			_ = Match<Delimiter>(in SyntaxKind.SemicolonToken);
 			return new ImportDirectiveSyntax(useKeyword, moduleIdentifier);
 		}
 		
@@ -152,20 +161,18 @@ public sealed class Parser
 		var closeBracketToken = Match<Any>(in SyntaxKind.CloseBracketToken);
 		var fromKeyword = Match<Keyword>(in SyntaxKind.FromKeyword);
 		moduleIdentifier = Match<Identifier>(in SyntaxKind.IdentifierToken);
-		_ = Match<Any>(in SyntaxKind.SemicolonToken);
+		_ = Match<Delimiter>(in SyntaxKind.SemicolonToken);
 
-		var immutableIdentifiers = identifiers as IReadOnlyList<SyntaxToken<Any>>;
-		
 		return new ImportDirectiveSyntax(useKeyword, 
 		                                 openBracketToken, 
-		                                 immutableIdentifiers, 
+		                                 identifiers, 
 		                                 closeBracketToken, 
 		                                 fromKeyword,
 		                                 moduleIdentifier);
 	}
 
 	private ClassDeclarationSyntax ParseClassDeclaration(in SyntaxToken<Bracket> openBracket,
-	                                                     in ModifierSyntaxList modifiers, 
+	                                                     in ModifierListSyntax modifiers, 
 	                                                     in SyntaxToken<Bracket> closeBracket)
 	{
 		var keyword = Match<Keyword>(in SyntaxKind.ClassKeyword);
@@ -175,7 +182,7 @@ public sealed class Parser
 	}
 	
 	private StructDeclarationSyntax ParseStructDeclaration(in SyntaxToken<Bracket> openBracket,
-	                                                       in ModifierSyntaxList modifiers, 
+	                                                       in ModifierListSyntax modifiers, 
 	                                                       in SyntaxToken<Bracket> closeBracket)
 	{
 		var keyword = Match<Keyword>(in SyntaxKind.StructKeyword);
@@ -185,7 +192,7 @@ public sealed class Parser
 	}
 
 	private EnumDeclarationSyntax ParseEnumDeclaration(in SyntaxToken<Bracket> openBracket,
-	                                                   in ModifierSyntaxList modifiers, 
+	                                                   in ModifierListSyntax modifiers, 
 	                                                   in SyntaxToken<Bracket> closeBracket)
 	{
 		var keyword = Match<Keyword>(in SyntaxKind.EnumKeyword);
@@ -196,7 +203,7 @@ public sealed class Parser
 
 	private EnumBlockStatementSyntax ParseEnumBlockStatement()
 	{
-		var fields = new List<EnumFieldDeclarationSyntax>();
+		var fields = new SyntaxList<EnumFieldDeclarationSyntax>();
 		var openBraceToken = Match<Any>(in SyntaxKind.OpenBraceToken);
 		while (CurrentIsNot(in SyntaxKind.CloseBraceToken) && NotAtEnd)
 		{
@@ -216,7 +223,7 @@ public sealed class Parser
 	
 	private FunctionDeclarationSyntax ParseFunctionDeclaration(
 		in SyntaxToken<Bracket> openBracket,
-		in ModifierSyntaxList modifiers, 
+		in ModifierListSyntax modifiers, 
 		in SyntaxToken<Bracket> closeBracket,
 		in SyntaxToken<Identifier> identifier)
 	{
@@ -242,8 +249,6 @@ public sealed class Parser
 
 	private GenericFunctionDeclaration ParseGenericFunctionDeclaration(in SyntaxToken<Any> atToken)
 	{
-		// @generic<T>
-		// [public] Add(T left, T right) -> T { }
 		var genericKeyword = Match<Keyword>(in SyntaxKind.GenericKeyword);
 		var lessToken  = Match<Any>(in SyntaxKind.LessToken);
 		var genericType = Match<Identifier>(in SyntaxKind.IdentifierToken);
@@ -279,9 +284,9 @@ public sealed class Parser
 	
 	private GlobalVariableDeclaration ParseGlobalVariableDeclaration(
 		in SyntaxToken<Bracket> openBracket,
-		in ModifierSyntaxList modifiers, 
+		in ModifierListSyntax modifiers, 
 		in SyntaxToken<Bracket> closeBracket,
-		in SyntaxToken<UType> type,
+		in SyntaxToken<UserType> type,
 		in SyntaxToken<Identifier> identifier)
 	{
 		SyntaxToken<Delimiter> semicolon;
@@ -318,10 +323,10 @@ public sealed class Parser
 		return new GenericConstraintSyntax(whenKeyword, identifier, colonToken, constraints);
 	}
 
-	private IReadOnlyList<ConstraintSyntax> ParseConstraints()
+	private SyntaxList<ConstraintSyntax> ParseConstraints()
 	{
 		var parseNextConstraint = true;
-		var constraints = new List<ConstraintSyntax>();
+		var constraints = new SyntaxList<ConstraintSyntax>();
 		while (parseNextConstraint && CurrentIsNot(in SyntaxKind.OpenBracketToken) && NotAtEnd)
 		{
 			var constraint = ParseConstraint();
@@ -394,7 +399,7 @@ public sealed class Parser
 		return new MethodConstraintSyntax(genericIdentifier, dotToken, methodName, openParen, parameters, closeParen);
 	}
 	
-	private (SyntaxToken<Bracket>, ModifierSyntaxList, SyntaxToken<Bracket>) ParseModifiers()
+	private (SyntaxToken<Bracket>, ModifierListSyntax, SyntaxToken<Bracket>) ParseModifiers()
 	{
 		var openBracket = Match<Bracket>(in SyntaxKind.OpenBracketToken);
 		var parseNextParameter = true;
@@ -420,10 +425,10 @@ public sealed class Parser
 			modifiers.Add(SyntaxToken<Error>.Illegal(Current.Position - 1, Current.Line, Current.LeadingTrivia, diagnostic));
 		}
 		
-		return (openBracket, new ModifierSyntaxList(modifiers), closeBracket);
+		return (openBracket, new ModifierListSyntax(modifiers), closeBracket);
 	}
 	
-	private ParameterSyntaxList ParseParameters()
+	private ParameterListSyntax ParseParameters()
 	{
 		var parseNextParameter = true;
 		var parameters = new List<ParameterSyntax>();
@@ -437,7 +442,7 @@ public sealed class Parser
 			}
 		}
 
-		return new ParameterSyntaxList(parameters);
+		return new ParameterListSyntax(parameters);
 	}
 
 	private ParameterSyntax ParseParameter()
@@ -460,7 +465,7 @@ public sealed class Parser
 
 		return ParseExpressionStatement();
 	}
-	
+
 	private EnumFieldDeclarationSyntax ParseEnumFieldDeclaration()
 	{
 		var identifier = Match<Identifier>(in SyntaxKind.IdentifierToken);
@@ -475,7 +480,7 @@ public sealed class Parser
 	
 	private BlockStatementSyntax ParseBlockStatement()
 	{
-		var statements = new List<StatementSyntax>();
+		var statements = new SyntaxList<StatementSyntax>();
 
 		var openBraceToken = Match<Any>(in SyntaxKind.OpenBraceToken);
 		while (CurrentIsNot(in SyntaxKind.CloseBraceToken) && NotAtEnd)
@@ -501,32 +506,31 @@ public sealed class Parser
 		{
 			mutability = mutable;
 		}
-
+		
 		SyntaxToken<Identifier> identifier;
 		SyntaxToken<Delimiter> semicolon;
 		SyntaxToken<Any>? equalsToken;
- 		
 		if (CurrentIs(in SyntaxKind.IdentifierToken) && NextIs(SyntaxKind.AllCompoundOperators))
 		{
 			identifier = Match<Identifier>(in SyntaxKind.IdentifierToken);
 			equalsToken = Match<Any>(SyntaxKind.AllCompoundOperators);
 			var initializer = ParseExpression();
 			semicolon = Match<Delimiter>(in SyntaxKind.SemicolonToken);
-			return new VariableDeclarationSyntax(mutability, null, identifier, equalsToken, initializer, semicolon);
+			return new VariableDeclarationSyntax(null, null, identifier, equalsToken, initializer, semicolon);
 		}
 		
 		var keyword = Match<Keyword>(SyntaxKind.AllPredefinedOrUserTypes);
 		identifier = Match<Identifier>(in SyntaxKind.IdentifierToken);
-		
-		// no initializer, even if we have "var x;", we will still consider it valid syntax
-		// and catch the error at the later stages
+
 		if (TryMatch(in SyntaxKind.EqualsToken, out equalsToken))
 		{
 			var initializer = ParseExpression();
 			semicolon = Match<Delimiter>(in SyntaxKind.SemicolonToken);
 			return new VariableDeclarationSyntax(mutability, keyword, identifier, equalsToken, initializer, semicolon);
 		}
-
+		
+		// no initializer, even if we have "var x;", we will still consider it valid syntax
+		// and catch the error at the later stages
 		semicolon = Match<Delimiter>(in SyntaxKind.SemicolonToken);
 		return new VariableDeclarationSyntax(mutability, keyword, identifier, null, null, semicolon);
 	}
@@ -544,9 +548,10 @@ public sealed class Parser
 
 	private ExpressionSyntax ParseAssignmentExpression()
 	{
-		if (TryMatch<Identifier>(in SyntaxKind.IdentifierToken, out var identifierToken) && 
-		    TryMatch<Any>(SyntaxKind.AllCompoundOperators, out var equalsToken))
+		if (CurrentIs(in SyntaxKind.IdentifierToken) && NextIs(SyntaxKind.AllCompoundOperators))
 		{
+			var identifierToken = Match<Identifier>(in SyntaxKind.IdentifierToken);
+			var equalsToken = Match<Identifier>(SyntaxKind.AllCompoundOperators);
 			var expression = ParseExpression();
 			return new AssignmentExpressionSyntax(identifierToken, equalsToken, expression);
 		}
@@ -561,7 +566,7 @@ public sealed class Parser
 		// If our precedence is 0 (which means we've hit a non-operator token) or our current precedence
 		// is greater than the given parent precedence, we can successfully construct a node and then continue
 		// down the tree if necessary
-		if (currentPrecedence != 0 && currentPrecedence >= parentPrecedence)
+		if (currentPrecedence > 0 && currentPrecedence >= parentPrecedence)
 		{
 			var operatorToken = Match<Operator>(SyntaxKind.AllUnaryOperators); 
 			var operand = ParseUnaryExpression(in currentPrecedence);
@@ -578,7 +583,7 @@ public sealed class Parser
 		return ParseBinaryExpression(left, parentPrecedence);
 	}
 
-	private ExpressionSyntax ParseBinaryExpression(ExpressionSyntax left, in int parentPrecedence = 0)
+	private ExpressionSyntax ParseBinaryExpression(ExpressionSyntax left, in int parentPrecedence)
 	{
 		while (true)
 		{
@@ -605,7 +610,6 @@ public sealed class Parser
 		return left;
 	}
 
-	// condition is already set in stone, so we use the "in" modifier to ensure there's zero chance of modification
 	private TernaryExpressionSyntax ParseTernaryExpression(in ExpressionSyntax condition, in int parentPrecedence)
 	{
 		var questionMark = Match<Any>(in SyntaxKind.QuestionMarkToken);
@@ -617,56 +621,47 @@ public sealed class Parser
 	
 	private ExpressionSyntax ParsePrimaryExpression()
 	{
-		if (CurrentIs(in SyntaxKind.AllocKeyword))
+		switch (Current.Kind)
 		{
-			return ParseConstructorCall();
+			case var _ when CurrentIs(in SyntaxKind.AllocKeyword):
+				return ParseConstructorCall();
+			case var _ when CurrentIs(in SyntaxKind.OpenParenToken):
+				return ParseParenthesizedExpression();
+			case var _ when CurrentIs(SyntaxKind.StringLiteralToken | SyntaxKind.CharLiteralToken):
+				return ParseStringLiteral();
+			case var _ when CurrentIs(SyntaxKind.TrueKeyword | SyntaxKind.FalseKeyword):
+				return ParseBooleanLiteral();
+			case var _ when CurrentIs(SyntaxKind.AllNumericLiterals):
+				return ParseNumberLiteral();
+			case var _ when CurrentIs(in SyntaxKind.IdentifierToken):
+				return ParseNameExpression();
+			default:
+				/*
+				 * NOTE(everyone):
+				 *	- The way that SyntaxKind is designed, when given N amount of kinds with the | operator,
+				 *	when ToString() is called, it will return them in a separated list format of:
+				 *	"OpenParenToken, StringLiteralToken, CharLiteralToken, TrueKeyword, FalseKeyword, AllNumericLiterals, IdentifierToken",
+				 *	So the user will be able to see what was expected, instead of being clueless on invalid token error
+				 *
+				 *	- SyntaxKind.AllNumericLiterals will also be a list of all the number literals, so that list will actually be longer :) 
+				 */ 
+				var expected = SyntaxKind.OpenParenToken |
+		                   SyntaxKind.StringLiteralToken |
+		                   SyntaxKind.CharLiteralToken |
+		                   SyntaxKind.TrueKeyword |
+		                   SyntaxKind.FalseKeyword |
+		                   SyntaxKind.AllNumericLiterals |
+		                   SyntaxKind.IdentifierToken;
+				
+				m_diagnostics.ReportUnexpectedToken(Current.Location, Current.Kind, expected, out var diagnostics);
+				return DiagnosticBag.CreateErrorNode<ErrorExpressionNode>(diagnostics);
 		}
-		if (CurrentIs(in SyntaxKind.OpenParenToken))
-		{
-			return ParseParenthesizedExpression();
-		}
-		if (CurrentIs(SyntaxKind.StringLiteralToken | SyntaxKind.CharLiteralToken))
-		{
-			return ParseStringLiteral();
-		}
-		if (CurrentIs(SyntaxKind.TrueKeyword | SyntaxKind.FalseKeyword))
-		{
-			return ParseBooleanLiteral();
-		}
-		if (CurrentIs(SyntaxKind.AllNumericLiterals))
-		{
-			return ParseNumberLiteral();
-		}
-		if (CurrentIs(in SyntaxKind.IdentifierToken))
-		{
-			return ParseNameExpression();
-		}
-		
-
-		/*
-		 * NOTE(everyone):
-		 *	- The way that SyntaxKind is designed, when given N amount of kinds with the | operator,
-		 *	when ToString() is called, it will return them in a separated list format of:
-		 *	"OpenParenToken, StringLiteralToken, CharLiteralToken, TrueKeyword, FalseKeyword, AllNumericLiterals, IdentifierToken",
-		 *	So the user will be able to see what was expected, instead of being clueless on invalid token error
-		 *
-		 *	- SyntaxKind.AllNumericLiterals will also be a list of all the number literals, so that list will actually be longer :) 
-		 */
-		var expected = SyntaxKind.OpenParenToken |
-		               SyntaxKind.StringLiteralToken |
-		               SyntaxKind.CharLiteralToken |
-		               SyntaxKind.TrueKeyword |
-		               SyntaxKind.FalseKeyword |
-		               SyntaxKind.AllNumericLiterals |
-		               SyntaxKind.IdentifierToken;
-		
-		m_diagnostics.ReportUnexpectedToken(Current.Location, Current.Kind, expected, out var diagnostics);
-		return DiagnosticBag.CreateErrorNode<ErrorExpressionNode>(diagnostics);
 	}
 
 	private ConstructorCallExpressionSyntax ParseConstructorCall()
 	{
 		var allocKeyword = Match<Keyword>(in SyntaxKind.AllocKeyword);
+		
 		SyntaxToken<Identifier> type;
 		SyntaxToken<Bracket> openParen;
 		SyntaxList<SyntaxToken<Identifier>> arguments;
@@ -753,6 +748,8 @@ public sealed class Parser
 	 *	1) Dictionary<SyntaxKind, ExpressionSyntax>
 	 *	2) ExpressionSyntax SyntaxCache.LookupNumberLiteral()
 	 *	3) ???
+	 *
+	 *	- I don't think it's possible to simplify, but I'm keeping this note here just in case.
 	 */
 	private ExpressionSyntax ParseNumberLiteral()
 	{
@@ -867,6 +864,11 @@ public sealed class Parser
 		var current = Current;
 		m_position++;
 		return current;
+	}
+
+	private void AdvanceDiscard()
+	{
+		_ = Consume();
 	}
 
 	private bool TryMatch<TValue>(in SyntaxKind kind, [NotNullWhen(true)] out SyntaxToken<TValue>? token)

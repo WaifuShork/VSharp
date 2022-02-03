@@ -4,7 +4,7 @@
 public sealed class EnumDeclarationSyntax : MemberSyntax
 {
 	public EnumDeclarationSyntax(SyntaxToken<Bracket> openBracketToken,
-	                             ModifierSyntaxList modifiers,
+	                             ModifierListSyntax modifiers,
 	                             SyntaxToken<Bracket> closeBracketToken,
 	                             SyntaxToken<Keyword> keyword,
 	                             SyntaxToken<Identifier> identifier,
@@ -20,7 +20,7 @@ public sealed class EnumDeclarationSyntax : MemberSyntax
 	
 	public override SyntaxKind Kind => SyntaxKind.EnumDeclaration;
 	public SyntaxToken<Bracket> OpenBracketToken { get; }
-	public ModifierSyntaxList Modifiers { get; }
+	public ModifierListSyntax Modifiers { get; }
 	public SyntaxToken<Bracket> CloseBracketToken { get; }
 	public SyntaxToken<string> Keyword { get; }
 	public SyntaxToken<string> Identifier { get; }

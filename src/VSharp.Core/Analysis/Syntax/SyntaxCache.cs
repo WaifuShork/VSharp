@@ -79,6 +79,8 @@ public class SyntaxCache
 		{ SyntaxKind.BangToken, 15 },
 		{ SyntaxKind.TildeToken, 15 },
 		
+		{ SyntaxKind.IdentifierToken, 0 }
+		
 	}, LazyThreadSafetyMode.ExecutionAndPublication);
 	
 	// <left> <op> <right>
@@ -100,6 +102,8 @@ public class SyntaxCache
 		{ SyntaxKind.GreaterEqualsToken, 9 },
 		
 		{ SyntaxKind.EqualsEqualsToken, 8 },
+		{ SyntaxKind.EqualsEqualsEqualsToken, 8 },
+		{ SyntaxKind.BangEqualsEqualsToken, 8 },
 		{ SyntaxKind.BangEqualsToken, 8 },
 		
 		{ SyntaxKind.AmpersandToken, 7 },
@@ -112,6 +116,8 @@ public class SyntaxCache
 		
 		{ SyntaxKind.PipePipeToken, 3 },
 		{ SyntaxKind.QuestionMarkToken, 2 },
+		
+		{ SyntaxKind.IdentifierToken, 0 }
 		
 	}, LazyThreadSafetyMode.ExecutionAndPublication);
 
@@ -152,6 +158,8 @@ public class SyntaxCache
 		{ SyntaxKind.BangEqualsToken, "!="},
 		{ SyntaxKind.EqualsToken, "="},
 		{ SyntaxKind.EqualsEqualsToken, "=="},
+		{ SyntaxKind.EqualsEqualsEqualsToken, "==="},
+		{ SyntaxKind.BangEqualsEqualsToken, "!=="},
 		{ SyntaxKind.LessToken, "<"},
 		{ SyntaxKind.LessEqualsToken, "<="},
 		{ SyntaxKind.GreaterToken, ">"},

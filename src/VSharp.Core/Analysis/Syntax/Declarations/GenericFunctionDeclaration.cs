@@ -10,11 +10,11 @@ public sealed class GenericFunctionDeclaration : MemberSyntax
 	                                  SyntaxToken<Bracket> greaterToken,
 	                                  GenericConstraintSyntax? constraint,
 	                                  SyntaxToken<Bracket> openBracketToken,
-	                                  ModifierSyntaxList modifiers,
+	                                  ModifierListSyntax modifiers,
 	                                  SyntaxToken<Bracket> closeBracketToken,
 	                                  SyntaxToken<Identifier> identifier,
 	                                  SyntaxToken<Bracket> openParenToken,
-	                                  ParameterSyntaxList parameters,
+	                                  ParameterListSyntax parameters,
 	                                  SyntaxToken<Bracket> closeParenToken,	                                  
 	                                  SyntaxToken<Any> arrowToken,
 	                                  SyntaxToken<Any> returnType,
@@ -47,11 +47,11 @@ public sealed class GenericFunctionDeclaration : MemberSyntax
     public SyntaxToken<Bracket> GreaterToken { get; }
     public GenericConstraintSyntax? Constraint { get; }
 	public SyntaxToken<Bracket> OpenBracketToken { get; }
-	public ModifierSyntaxList Modifiers { get; }
+	public ModifierListSyntax Modifiers { get; }
 	public SyntaxToken<Bracket> CloseBracketToken { get; }
 	public SyntaxToken<Identifier> Identifier { get; }
 	public SyntaxToken<Bracket> OpenParenToken { get; }
-	public ParameterSyntaxList Parameters { get; }
+	public ParameterListSyntax Parameters { get; }
 	public SyntaxToken<Bracket> CloseParenToken { get; }
 	public SyntaxToken<Any> ArrowToken { get; }
 	public SyntaxToken<Any> ReturnType { get; }

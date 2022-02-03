@@ -343,8 +343,17 @@ public partial class Lexer
 					case '=':
 					{
 						Advance();
-						var trailingTrivia = ScanSyntaxTrivia(in SyntaxKind.TrailingTrivia);
-						return CreateToken(leadingTrivia, in SyntaxKind.EqualsEqualsToken, "==", trailingTrivia);
+						if (Current == '=')
+						{
+							Advance();
+							var trailingTrivia = ScanSyntaxTrivia(in SyntaxKind.TrailingTrivia);
+							return CreateToken(leadingTrivia, in SyntaxKind.EqualsEqualsEqualsToken, "===", trailingTrivia);
+						}
+						else
+						{
+							var trailingTrivia = ScanSyntaxTrivia(in SyntaxKind.TrailingTrivia);
+							return CreateToken(leadingTrivia, in SyntaxKind.EqualsEqualsToken, "==", trailingTrivia);
+						}
 					}
 					default:
 					{
@@ -417,8 +426,17 @@ public partial class Lexer
 					case '=':
 					{
 						Advance();
-						var trailingTrivia = ScanSyntaxTrivia(in SyntaxKind.TrailingTrivia);
-						return CreateToken(leadingTrivia, in SyntaxKind.BangEqualsToken, "!=", trailingTrivia);
+						if (Current == '=')
+						{
+							Advance();
+							var trailingTrivia = ScanSyntaxTrivia(in SyntaxKind.TrailingTrivia);
+							return CreateToken(leadingTrivia, in SyntaxKind.BangEqualsEqualsToken, "!==", trailingTrivia);
+						}
+						else
+						{
+							var trailingTrivia = ScanSyntaxTrivia(in SyntaxKind.TrailingTrivia);
+							return CreateToken(leadingTrivia, in SyntaxKind.BangEqualsToken, "!=", trailingTrivia);
+						}
 					}
 					default:
 					{

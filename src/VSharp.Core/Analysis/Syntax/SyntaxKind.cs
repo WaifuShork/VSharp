@@ -406,6 +406,8 @@ public struct SyntaxKind : IEquatable<SyntaxKind>, IComparable<SyntaxKind>, ICom
 	public static readonly SyntaxKind BangEqualsToken;
 	public static readonly SyntaxKind EqualsToken;
 	public static readonly SyntaxKind EqualsEqualsToken;
+	public static readonly SyntaxKind EqualsEqualsEqualsToken;
+	public static readonly SyntaxKind BangEqualsEqualsToken;
 	public static readonly SyntaxKind LessToken;
 	public static readonly SyntaxKind LessEqualsToken;
 	public static readonly SyntaxKind GreaterToken;
@@ -416,13 +418,13 @@ public struct SyntaxKind : IEquatable<SyntaxKind>, IComparable<SyntaxKind>, ICom
 	public static readonly SyntaxKind AmpersandAmpersandToken;
 	public static readonly SyntaxKind LessLessToken;
 	public static readonly SyntaxKind GreaterGreaterToken;
-	public static SyntaxKind AllBinaryOperators => CaretToken         | PlusToken			    | MinusToken 
-	                                             | AsteriskToken      | FSlashToken			    | PercentToken 
-												 | QuestionMarkToken  | BangEqualsToken		    | EqualsEqualsToken 
-												 | LessToken          | LessEqualsToken		    | GreaterToken 
-												 | GreaterEqualsToken | PipeToken			    | PipePipeToken 
-												 | AmpersandToken     | AmpersandAmpersandToken | LessLessToken 
-												 | GreaterGreaterToken;
+	public static SyntaxKind AllBinaryOperators => CaretToken          | PlusToken			     | MinusToken 
+	                                             | AsteriskToken       | FSlashToken			 | PercentToken 
+												 | QuestionMarkToken   | BangEqualsToken		 | EqualsEqualsToken 
+												 | LessToken           | LessEqualsToken		 | GreaterToken 
+												 | GreaterEqualsToken  | PipeToken			     | PipePipeToken 
+												 | AmpersandToken      | AmpersandAmpersandToken | LessLessToken 
+												 | GreaterGreaterToken | EqualsEqualsEqualsToken | BangEqualsEqualsToken;
 	
 	// Compound Tokens
 	public static readonly SyntaxKind CaretEqualsToken;
@@ -439,7 +441,7 @@ public struct SyntaxKind : IEquatable<SyntaxKind>, IComparable<SyntaxKind>, ICom
 	public static SyntaxKind AllCompoundOperators => CaretEqualsToken          | PlusEqualsToken      | MinusEqualsToken 
 												   | AsteriskEqualsToken       | FSlashEqualsToken    | PercentEqualsToken 
 												   | PipeEqualsToken           | AmpersandEqualsToken | LessLessEqualsToken 
-												   | GreaterGreaterEqualsToken | TildeEqualsToken;
+												   | GreaterGreaterEqualsToken | TildeEqualsToken     | EqualsToken;
 	
 	// Keywords
 	public static readonly SyntaxKind TypeOfKeyword;
@@ -502,8 +504,7 @@ public struct SyntaxKind : IEquatable<SyntaxKind>, IComparable<SyntaxKind>, ICom
 	                                      | EnumKeyword    | InfinityIntKeyword | AllocKeyword
 	                                      | HeapKeyword    | StackKeyword;
 
-	public static SyntaxKind AllModifiers => ImmutableKeyword | MutableKeyword 
-	                                       | PrivateKeyword   | PublicKeyword;
+	public static SyntaxKind AllModifiers => ImmutableKeyword | MutableKeyword | PrivateKeyword | PublicKeyword | StaticKeyword;
 
 	public static SyntaxKind AllPredefinedTypes => ObjectKeyword  | StringKeyword  | CharKeyword 
 	                                             | BoolKeyword    | Int8Keyword    | UInt8Keyword 
@@ -511,8 +512,7 @@ public struct SyntaxKind : IEquatable<SyntaxKind>, IComparable<SyntaxKind>, ICom
 	                                             | UInt32Keyword  | Int64Keyword   | UInt64Keyword 
 	                                             | Float32Keyword | Float64Keyword | InfinityIntKeyword;
 
-	public static SyntaxKind LocalVariableDeclaration => AllPredefinedOrUserTypes | VarKeyword 
-	                                                   | ImmutableKeyword		  | MutableKeyword;
+	public static SyntaxKind LocalVariableDeclaration => AllPredefinedOrUserTypes | ImmutableKeyword | MutableKeyword;
 	
 	public static SyntaxKind AllPredefinedOrUserTypes => AllPredefinedTypes | IdentifierToken | VarKeyword;
 

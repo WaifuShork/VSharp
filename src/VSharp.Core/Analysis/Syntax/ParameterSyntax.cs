@@ -3,16 +3,16 @@
 [PublicAPI]
 public sealed class ParameterSyntax : SyntaxNode
 {
-	public ParameterSyntax(SyntaxToken<string> type, 
-	                       SyntaxToken<string> identifier)
+	public ParameterSyntax(SyntaxToken<UserType> type, 
+	                       SyntaxToken<Identifier> identifier)
 	{
 		Type = type;
 		Identifier = identifier;
 	}
 
 	public override SyntaxKind Kind => SyntaxKind.Parameter;
-	public SyntaxToken<string> Type { get; }
-	public SyntaxToken<string> Identifier { get; }
+	public SyntaxToken<UserType> Type { get; }
+	public SyntaxToken<Identifier> Identifier { get; }
 
 	public override IEnumerable<SyntaxNode> GetChildren()
 	{

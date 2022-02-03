@@ -4,7 +4,7 @@
 public sealed class GlobalVariableDeclaration : MemberSyntax
 {
 	public GlobalVariableDeclaration(SyntaxToken<Bracket> openBracketToken,
-	                                 ModifierSyntaxList modifiers,
+	                                 ModifierListSyntax modifiers,
 	                                 SyntaxToken<Bracket> closeBracketToken,
 	                                 SyntaxToken<string> type,
 	                                 SyntaxToken<string> identifier,
@@ -24,7 +24,7 @@ public sealed class GlobalVariableDeclaration : MemberSyntax
 	
 	public override SyntaxKind Kind => SyntaxKind.GlobalVariableDeclaration;
 	public SyntaxToken<Bracket> OpenBracketToken { get; }
-	public ModifierSyntaxList Modifiers { get; }
+	public ModifierListSyntax Modifiers { get; }
 	public SyntaxToken<Bracket> CloseBracketToken { get; }
 	public SyntaxToken<string> Type { get; }
 	public SyntaxToken<string> Identifier { get; }

@@ -6,7 +6,7 @@ public sealed class GenericConstraintSyntax : SyntaxNode
 	public GenericConstraintSyntax(SyntaxToken<Keyword> whereKeyword,
 	                               SyntaxToken<Identifier> identifier, 
 	                               SyntaxToken<Any> colonToken,
-	                               IReadOnlyList<ConstraintSyntax> constraints)
+	                               SyntaxList<ConstraintSyntax> constraints)
 	{
 		WhereKeyword = whereKeyword;
 		Identifier = identifier;
@@ -18,7 +18,7 @@ public sealed class GenericConstraintSyntax : SyntaxNode
 	public SyntaxToken<Keyword> WhereKeyword { get; }
 	public SyntaxToken<Identifier> Identifier { get; }
 	public SyntaxToken<Any> ColonToken { get; }
-	public IReadOnlyList<ConstraintSyntax> Constraints { get; }
+	public SyntaxList<ConstraintSyntax> Constraints { get; }
 	
 	public override IEnumerable<SyntaxNode> GetChildren()
 	{

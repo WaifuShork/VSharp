@@ -2,6 +2,7 @@
 using System.Text;
 using System.Globalization;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Humanizer;
 using Color = System.Drawing.Color;
 
@@ -118,6 +119,13 @@ public static class VSharp
             await Console.Out.WriteAsync($"({currentLine})> ".ColorizeForeground(Color.Cyan)); 
             
             var input = await Console.In.ReadLineAsync();
+            if (!string.IsNullOrWhiteSpace(input) && input.StartsWith("#load"))
+            {
+                var path = input["#load ".Length..];
+                var file = await File.ReadAllTextAsync(path);
+                textBuilder.Append(file);
+                goto output;
+            }
             if (input == "#reset")
             {
                 currentLine = 1;
@@ -153,7 +161,12 @@ public static class VSharp
 
             if (syntaxTree.Diagnostics.Any())
             {
-                await syntaxTree.Diagnostics.DumpDiagnosticsAsync();
+                foreach (var diagnostic in syntaxTree.Diagnostics)
+                {
+                    await Console.Out.WriteLineAsync(diagnostic.Location.Source);
+                    await Console.Out.WriteLineAsync(diagnostic.Message);
+                }
+                // await syntaxTree.Diagnostics.DumpDiagnosticsAsync();
             }
 
             textBuilder.Clear();

@@ -4,7 +4,7 @@
 public sealed class BlockStatementSyntax : StatementSyntax
 {
 	public BlockStatementSyntax(SyntaxToken<string> openBraceToken, 
-	                            IReadOnlyList<StatementSyntax> statements, 
+	                            SyntaxList<StatementSyntax> statements, 
 	                            SyntaxToken<string> closeBraceToken)
 	{
 		OpenBraceToken = openBraceToken;
@@ -14,7 +14,7 @@ public sealed class BlockStatementSyntax : StatementSyntax
 
 	public override SyntaxKind Kind => SyntaxKind.BlockStatement;
 	public SyntaxToken<string> OpenBraceToken { get; }
-	public IReadOnlyList<StatementSyntax> Statements { get; }
+	public SyntaxList<StatementSyntax> Statements { get; }
 	public SyntaxToken<string> CloseBraceToken { get; }
 	
 	public override IEnumerable<SyntaxNode> GetChildren()
@@ -33,7 +33,7 @@ public sealed class BlockStatementSyntax : StatementSyntax
 public sealed class EnumBlockStatementSyntax : StatementSyntax
 {
 	public EnumBlockStatementSyntax(SyntaxToken<string> openBraceToken, 
-	                                IReadOnlyList<EnumFieldDeclarationSyntax> fields, 
+	                                SyntaxList<EnumFieldDeclarationSyntax> fields, 
 	                                SyntaxToken<string> closeBraceToken)
 	{
 		OpenBraceToken = openBraceToken;
@@ -43,7 +43,7 @@ public sealed class EnumBlockStatementSyntax : StatementSyntax
 
 	public override SyntaxKind Kind => SyntaxKind.BlockStatement;
 	public SyntaxToken<string> OpenBraceToken { get; }
-	public IReadOnlyList<EnumFieldDeclarationSyntax> Fields { get; }
+	public SyntaxList<EnumFieldDeclarationSyntax> Fields { get; }
 	public SyntaxToken<string> CloseBraceToken { get; }
 	
 	public override IEnumerable<SyntaxNode> GetChildren()

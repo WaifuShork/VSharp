@@ -7,11 +7,11 @@ public sealed class FunctionDeclarationSyntax : MemberSyntax
 	// [public, immutable] Identifier(parameters) -> returnType { }
 	// [public, mutable] Identifier(parameters) -> returnType { }
 	public FunctionDeclarationSyntax(SyntaxToken<Bracket> openBracketToken,
-	                                 ModifierSyntaxList modifiers,
+	                                 ModifierListSyntax modifiers,
 	                                 SyntaxToken<Bracket> closeBracketToken,
 	                                 SyntaxToken<string> identifier,
 	                                 SyntaxToken<Bracket> openParenToken,
-	                                 ParameterSyntaxList parameters,
+	                                 ParameterListSyntax parameters,
 	                                 SyntaxToken<Bracket> closeParenToken,
 	                                 SyntaxToken<string> arrowToken,
 	                                 SyntaxToken<string> returnType,
@@ -31,11 +31,11 @@ public sealed class FunctionDeclarationSyntax : MemberSyntax
 	
 	public override SyntaxKind Kind => SyntaxKind.FunctionDeclaration;
 	public SyntaxToken<Bracket> OpenBracketToken { get; }
-	public ModifierSyntaxList Modifiers { get; }
+	public ModifierListSyntax Modifiers { get; }
 	public SyntaxToken<Bracket> CloseBracketToken { get; }	
 	public SyntaxToken<string> Identifier { get; }
 	public SyntaxToken<string> OpenParenToken { get; }
-	public ParameterSyntaxList Parameters { get; }
+	public ParameterListSyntax Parameters { get; }
 	public SyntaxToken<string> CloseParenToken { get; }
 	public SyntaxToken<string> ArrowToken { get; }
 	public SyntaxToken<string> ReturnType { get; }

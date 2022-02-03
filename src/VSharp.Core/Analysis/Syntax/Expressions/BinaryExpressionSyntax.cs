@@ -4,7 +4,7 @@
 public class BinaryExpressionSyntax : ExpressionSyntax
 {
 	public BinaryExpressionSyntax(ExpressionSyntax left, 
-	                              SyntaxToken<string> operatorToken,
+	                              SyntaxToken<Operator> operatorToken,
 	                              ExpressionSyntax right)
 	{
 		Left = left;
@@ -15,7 +15,7 @@ public class BinaryExpressionSyntax : ExpressionSyntax
 	public override SyntaxKind Kind => SyntaxKind.BinaryExpression;
 
 	public ExpressionSyntax Left { get; }
-	public SyntaxToken<string> Operator { get; }
+	public SyntaxToken<Operator> Operator { get; }
 	public ExpressionSyntax Right { get; }
 	
 	public override IEnumerable<SyntaxNode> GetChildren()

@@ -4,7 +4,7 @@
 public sealed class ModuleDeclarationSyntax : MemberSyntax
 {
 	public ModuleDeclarationSyntax(SyntaxToken<Bracket> openBracketToken,
-	                               ModifierSyntaxList modifiers,
+	                               ModifierListSyntax modifiers,
 	                               SyntaxToken<Bracket> closeBracketToken,
 	                               SyntaxToken<string> keyword, 
 	                               SyntaxToken<string> identifier,
@@ -22,7 +22,7 @@ public sealed class ModuleDeclarationSyntax : MemberSyntax
 	
 	public override SyntaxKind Kind => SyntaxKind.ModuleDeclaration;
 	public SyntaxToken<Bracket> OpenBracketToken { get; }
-	public ModifierSyntaxList Modifiers { get; }
+	public ModifierListSyntax Modifiers { get; }
 	public SyntaxToken<Bracket> CloseBracketToken { get; }
 	public SyntaxToken<string> Keyword { get; }
 	public SyntaxToken<string> Identifier { get; }
