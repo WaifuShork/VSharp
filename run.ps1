@@ -1,6 +1,6 @@
 function Start-VSharp
 {
-    dotnet.exe run --project "src\VSharp\VSharp.csproj";
+    dotnet.exe build # --project "src\VSharp\VSharp.csproj";
 }
 
 Start-VSharp;
